@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导航页</title>
+    <link rel="icon" href="icons/Favicon32px.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="icons/Favicon32px.ico">
+    <link rel="apple-touch-icon" href="icons/Favicon32px.ico">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            min-width: 800px;
+        }
+
+        .category-title {
+            font-size: 20px;
+            color: #444;
+            margin: 30px 0 15px 5px;
+            font-weight: 600;
+            border-left: 4px solid #4f46e5;
+            padding-left: 10px;
+        }
+
+        .main-title {
+            text-align: center;
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px;
+        }
+
+        .item {
+            position: relative;
+            background: white;
+            border-radius: 20px;
+            padding: 5px;
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s, background 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: default;
+            z-index: auto;
+            margin-bottom: 4px;
+        }
+
+        .item:hover {
+            transform: translateY(-3px);
+            background: #eef2ff;
+        }
+
+        .item img {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 1px;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .item .name {
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        /* ----- 悬浮提示小窗 ----- */
+        .item .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background: #2d2d2d;
+            color: #fff;
+            text-align: left;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.6;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+            transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
+            z-index: 99999;
+            pointer-events: none;
+            min-width: 200px;
+            max-width: 280px;
+            width: max-content;
+            word-break: break-word;
+            white-space: normal;
+            overflow: visible;
+            margin-bottom: 8px;
+        }
+
+        .item .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 7px solid transparent;
+            border-top-color: #2d2d2d;
+            z-index: 99999;
+        }
+
+        .item:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(-50%) translateY(-14px);
+        }
+
+        .grid,
+        .container,
+        body {
+            overflow: visible;
+        }
+
+        @media (max-width: 860px) {
+            .container {
+                min-width: 0;
+            }
+            .grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .item .tooltip {
+                min-width: 160px;
+                max-width: 220px;
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+        }
+        @media (max-width: 480px) {
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .item .tooltip {
+                min-width: 140px;
+                max-width: 180px;
+                font-size: 11px;
+                padding: 6px 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2 class="main-title">大造业务 常用导航</h2>
+
+        <div class="category-title" style="margin-top: 10px;">开发成交</div>
+        <div class="grid">
+            <a class="item" href="https://www.baidu.com" target="_blank">
+                <img src="icons/baidu.svg" alt="">
+                <div class="name">百度</div>
+                <div class="tooltip">百度搜索，全球最大的中文搜索引擎，提供网页、图片、视频等搜索服务</div>
+            </a>
+            <a class="item" href="https://google.com" target="_blank">
+                <img src="icons/Google.svg" alt="">
+                <div class="name">Google</div>
+                <div class="tooltip">Google 全球最大的搜索引擎，提供网页、图片、地图、学术等全方位搜索</div>
+            </a>
+            <a class="item" href="https://www.google.com/maps/" target="_blank">
+                <img src="icons/googlemaps.svg" alt="">
+                <div class="name">Google Maps</div>
+                <div class="tooltip">搜索目标国家城市 + 行业批发商，抓取门店、经销商官网、联系方式，适合线下实体批发商开发。</div>
+            </a>
+            <a class="item" href="https://translate.google.com/" target="_blank">
+                <img src="icons/googletranslate.svg" alt="">
+                <div class="name">谷歌翻译</div>
+                <div class="tooltip">Google Translate工具，全球最精准的AI翻译服务，支持多语种高质量翻译</div>
+            </a>
+            <a class="item" href="https://gemini.google.com/" target="_blank">
+                <img src="icons/Gemini.svg" alt="">
+                <div class="name">Gemini</div>
+                <div class="tooltip">Google 新一代多模态AI模型，支持文本、图像、音频、视频等多种理解能力</div>
+            </a>
+            <a class="item" href="https://chat.deepseek.com/" target="_blank">
+                <img src="icons/DeepSeek.svg" alt="">
+                <div class="name">DeepSeek</div>
+                <div class="tooltip">深度求索大模型，以高性价比和强大推理能力著称，支持长上下文处理</div>
+            </a>
+            <a class="item" href="http://www.chat.openai.com/" target="_blank">
+                <img src="icons/ChatGPT.svg" alt="">
+                <div class="name">ChatGPT</div>
+                <div class="tooltip">OpenAI ChatGPT，全球最知名的AI对话模型，支持文本生成、编程、分析等</div>
+            </a>
+            <a class="item" href="https://www.doubao.com/chat/" target="_blank">
+                <img src="icons/豆包.png" alt="">
+                <div class="name">豆包</div>
+                <div class="tooltip">字节跳动推出的AI对话助手，支持多轮对话、内容创作和知识问答</div>
+            </a>
+            <a class="item" href="https://sourcing.alibaba.com/" target="_blank">
+                <img src="icons/RFQ市场.svg" alt="">
+                <div class="name">国际站RFQ</div>
+                <div class="tooltip">国际站RFQ市场</div>
+            </a>
+            <a class="item" href="https://membercenter.made-in-china.com/quotationmanage.do?xcase=receivedRfq" target="_blank">
+                <img src="icons/制造网RFQ.svg" alt="">
+                <div class="name">制造网RFQ</div>
+                <div class="tooltip">制造网RFQ市场</div>
+            </a>
+            <a class="item" href="https://sitehd.joinf.com/#/dashboard/index" target="_blank">
+                <img src="icons/富通天下.png" alt="">
+                <div class="name">富通后台</div>
+                <div class="tooltip">富通天下管理后台，企业级业务管理和运营数据监控平台</div>
+            </a>
+            <a class="item" href="https://et.topease.net/login?product=gt" target="_blank">
+                <img src="icons/topease.png" alt="">
+                <div class="name">特易资讯</div>
+                <div class="tooltip">特易资讯外贸数据平台，提供全球贸易数据和客户分析服务</div>
+            </a>
+            <a class="item" href="https://flying.kingtrans.cn/new_index.jsp?retry_reason=PASSWORD" target="_blank">
+                <img src="icons/飞航.png" alt="">
+                <div class="name">飞航</div>
+                <div class="tooltip">飞航物流管理系统，提供国际货运跟踪和物流管理服务</div>
+            </a>
+            <a class="item" href="https://hsbianma.com/" target="_blank">
+                <img src="icons/HS海关编码.svg" alt="">
+                <div class="name">HS海关编码</div>
+                <div class="tooltip">HS海关编码查询工具，快速查找商品对应的海关编码和税率信息</div>
+            </a>
+            <a class="item" href="https://www.17track.net/zh-cn" target="_blank">
+                <img src="icons/17track.png" alt="">
+                <div class="name">17TRACK</div>
+                <div class="tooltip">17TRACK国际包裹查询工具，支持全球多家物流公司的包裹追踪</div>
+            </a>
+
+            <a class="item" href="https://www.timeanddate.com/" target="_blank">
+                <img src="icons/timeanddate.svg" alt="">
+                <div class="name">Timeanddate</div>
+                <div class="tooltip">世界时间与日期查询工具，提供全球时区转换、日历和天文信息</div>
+            </a>
+        </div>
+
+        <div class="category-title">客情维护</div>
+        <div class="grid">
+            <a class="item" href="https://web.whatsapp.com/" target="_blank">
+                <img src="icons/WhatsApp.svg" alt="">
+                <div class="name">WhatsApp</div>
+                <div class="tooltip">WhatsApp即时通讯应用，全球用户量最大的消息应用，端到端加密</div>
+            </a>
+            <a class="item" href="https://www.linkedin.com/" target="_blank">
+                <img src="icons/Linkedin.svg" alt="">
+                <div class="name">Linkedin</div>
+                <div class="tooltip">LinkedIn职场社交平台，全球最大的职业社交网络，招聘和职业发展社区</div>
+            </a>
+            <a class="item" href="https://studio.youtube.com/" target="_blank">
+                <img src="icons/youtube.svg" alt="">
+                <div class="name">YouTube Studio</div>
+                <div class="tooltip">YouTube创作者工作室，视频数据分析、内容管理、收益统计一站式后台</div>
+            </a>
+            <a class="item" href="https://www.facebook.com/profile.php?id=61574767364571" target="_blank">
+                <img src="icons/Facebook.svg" alt="">
+                <div class="name">Facebook</div>
+                <div class="tooltip">全球最大的社交网络平台，连接朋友、家人和社区，分享生活动态</div>
+            </a>
+            <a class="item" href="https://www.instagram.com/" target="_blank">
+                <img src="icons/Instagram.svg" alt="">
+                <div class="name">Instagram</div>
+                <div class="tooltip">Instagram图片社交平台，以视觉内容为核心，支持照片、短视频和直播</div>
+            </a>
+            <a class="item" href="https://x.com/home" target="_blank">
+                <img src="icons/X.svg" alt="">
+                <div class="name">X</div>
+                <div class="tooltip">Twitter X社交平台，实时信息发布和讨论社区，全球新闻和热点聚集地</div>
+            </a>
+            <a class="item" href="https://www.tiktok.com/@Dazaocnc" target="_blank">
+                <img src="icons/TikTok.svg" alt="">
+                <div class="name">TikTok</div>
+                <div class="tooltip">TikTok国际版短视频平台，全球最受欢迎的短视频社交应用，覆盖150+国家</div>
+            </a>
+            <a class="item" href="https://vk.com/club228030395" target="_blank">
+                <img src="icons/VK.svg" alt="">
+                <div class="name">VK</div>
+                <div class="tooltip">VK俄罗斯最大社交平台，功能类似Facebook，在东欧地区拥有广泛用户</div>
+            </a>
+        </div>
+
+        <div class="category-title">公司网站</div>
+        <div class="grid">
+            <a class="item" href="https://jyhcn.en.alibaba.com/" target="_blank">
+                <img src="icons/阿里国际站.svg" alt="">
+                <div class="name">DAZAO</div>
+                <div class="tooltip">DAZAO阿里国际站店铺，面向全球客户的B2B机械制造和加工服务</div>
+            </a>
+            <a class="item" href="https://dazaocn.1688.com/" target="_blank">
+                <img src="icons/阿里1688.svg" alt="">
+                <div class="name">DAZAO</div>
+                <div class="tooltip">DAZAO 1688国内店铺，提供机械配件、模具加工等工业品供应</div>
+            </a>
+            <a class="item" href="https://dazao-machinery.en.made-in-china.com/" target="_blank">
+                <img src="icons/制造网.svg" alt="">
+                <div class="name">DAZAO</div>
+                <div class="tooltip">DAZAO中国制造网店铺，展示机械设备和加工能力，对接海外采购商</div>
+            </a>
+            <a class="item" href="https://www.dazaocn.com/" target="_blank">
+                <img src="icons/公司DAZAO.svg" alt="">
+                <div class="name">dazaocn.com</div>
+                <div class="tooltip">DAZAO公司官网，展示企业实力、产品信息和加工服务案例</div>
+            </a>
+            <a class="item" href="https://www.dazaocncmachining.com/" target="_blank">
+                <img src="icons/公司DAZAO.svg" alt="">
+                <div class="name">machining.com</div>
+                <div class="tooltip">DAZAO CNC加工专业网站，提供精密机械加工服务和技术支持</div>
+            </a>
+            <a class="item" href="https://moldmanufacturing.en.alibaba.com/" target="_blank">
+                <img src="icons/阿里国际站.svg" alt="">
+                <div class="name">BOKAIDI</div>
+                <div class="tooltip">BOKAIDI阿里国际站店铺，专注模具制造和注塑成型解决方案</div>
+            </a>
+            <a class="item" href="https://shuangyicn.1688.com/" target="_blank">
+                <img src="icons/阿里1688.svg" alt="">
+                <div class="name">BOKAIDI</div>
+                <div class="tooltip">BOKAIDI 1688国内店铺，提供模具配件和注塑产品供应服务</div>
+            </a>
+            <a class="item" href="https://bokaidi.cn/" target="_blank">
+                <img src="icons/公司BKD.svg" alt="">
+                <div class="name">bokaidi.cn</div>
+                <div class="tooltip">BOKAIDI公司官网，展示模具设计、制造和注塑加工一体化能力</div>
+            </a>
+        </div>
+
+        <div class="category-title">其它工具</div>
+        <div class="grid">
+            <a class="item" href="html字数统计.html" target="_blank">
+                <img src="icons/html字数统计.svg" alt="">
+                <div class="name">字符统计</div>
+                <div class="tooltip">在线字数统计工具，快速统计文本字数、字符数和段落数</div>
+            </a>
+            <a class="item" href="html转换大小写.html" target="_blank">
+                <img src="icons/html转换大小写.svg" alt="">
+                <div class="name">大小写转换</div>
+                <div class="tooltip">字母大小写转换工具，支持全大写、全小写和首字母大写等多种模式</div>
+            </a>
+            <a class="item" href="html转换花式字.html" target="_blank">
+                <img src="icons/html转换花式字.svg" alt="">
+                <div class="name">花式字母转换</div>
+                <div class="tooltip">花式字体生成工具，将普通文字转换为各种艺术字体和装饰样式</div>
+            </a>
+            <a class="item" href="html特殊符号大全.html" target="_blank">
+                <img src="icons/html特殊符号.svg" alt="">
+                <div class="name">特殊符号大全</div>
+                <div class="tooltip">特殊符号集合，提供各种符号、表情和特殊字符的快速复制使用</div>
+            </a>
+            <a class="item" href="html转换简体繁体.html" target="_blank">
+                <img src="icons/html转换简繁.svg" alt="">
+                <div class="name">繁体字转换</div>
+                <div class="tooltip">简体繁体互转工具，支持简繁转换和批量文本处理</div>
+            </a>
+            <a class="item" href="html查询ip信息.html" target="_blank">
+                <img src="icons/html查询ip信息.svg" alt="">
+                <div class="name">查询ip信息</div>
+                <div class="tooltip">IP归属地查询工具，快速获取IP地址的地理位置和网络信息</div>
+            </a>
+            <a class="item" href="html随机抽奖.html" target="_blank">
+                <img src="icons/html随机抽奖.svg" alt="">
+                <div class="name">随机抽奖</div>
+                <div class="tooltip">随机抽奖工具，支持自定义名单和奖项设置，公平随机抽取</div>
+            </a>
+            <a class="item" href="https://whoer.net/zh" target="_blank">
+                <img src="icons/whoer.png" alt="">
+                <div class="name">Whoer伪装度</div>
+                <div class="tooltip">Whoer IP伪装度检测，评估网络环境的安全性和匿名程度</div>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
