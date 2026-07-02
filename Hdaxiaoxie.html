@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文本大小写转换工具</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px;
+            background-color: #f5f7fa;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 15px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            outline-color: #409eff;
+            height: auto;
+            /* 隐藏滚动条 */
+            overflow: hidden;
+            resize: none;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 15px;
+            font-size: 15px;
+            border: none;
+            border-radius: 8px;
+            background-color: #409eff;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #337ecc;
+        }
+
+        .result-container {
+            position: relative;
+            margin-bottom: 10px;
+        }
+        
+        .result-box {
+            width: 100%;
+            padding: 15px;
+            background-color: #f0f7ff;
+            border-radius: 8px;
+            min-height: 80px;
+            border: 1px solid #d9ecff;
+            font-size: 16px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            max-height: unset;
+            overflow-y: visible;
+        }
+
+        .label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .copy-btn {
+            width: 100%;
+            margin-top: 10px;
+            background-color: #67c23a;
+        }
+
+        .copy-btn:hover {
+            background-color: #529e2e;
+        }
+
+        .copy-btn.copied {
+            background-color: #909399;
+        }
+
+        .tip {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>文本大小写转换工具</h1>
+        
+        <div class="label">请输入需要转换的文本：</div>
+        <textarea id="inputText" placeholder="在这里输入任意中英文、大小写文本..."></textarea>
+
+        <div class="btn-group">
+            <button onclick="toCapitalize()">首字母大写</button>
+            <button onclick="toUpperCase()">全部大写</button>
+            <button onclick="toLowerCase()">全部小写</button>
+        </div>
+
+        <div class="label">转换结果：</div>
+        <div class="result-container">
+            <div id="result" class="result-box">结果将显示在这里</div>
+        </div>
+        <button id="copyBtn" class="copy-btn" onclick="copyResult()">复制结果</button>
+        <div class="tip">全平台兼容，谌祖宝制作</div>
+    </div>
+
+    <script>
+        const inputEl = document.getElementById('inputText');
+        const resultEl = document.getElementById('result');
+        const copyBtn = document.getElementById('copyBtn');
+
+        // 输入框自动适配高度
+        function autoResize() {
+            inputEl.style.height = 'auto';
+            inputEl.style.height = inputEl.scrollHeight + 'px';
+        }
+        inputEl.addEventListener('input', autoResize);
+        // 初始化执行一次
+        autoResize();
+
+        function toUpperCase() {
+            const text = inputEl.value;
+            resultEl.textContent = text.toUpperCase();
+        }
+
+        function toLowerCase() {
+            const text = inputEl.value;
+            resultEl.textContent = text.toLowerCase();
+        }
+
+        function toCapitalize() {
+            const text = inputEl.value;
+            if (!text) {
+                resultEl.textContent = '';
+                return;
+            }
+            const result = text.replace(/\b\w/g, char => char.toUpperCase())
+                             .replace(/\B\w/g, char => char.toLowerCase());
+            resultEl.textContent = result;
+        }
+
+        function copyResult() {
+            const text = resultEl.textContent;
+            if (!text || text === '结果将显示在这里') {
+                alert('没有可复制的内容！');
+                return;
+            }
+            
+            navigator.clipboard.writeText(text).then(() => {
+                copyBtn.textContent = '已复制！';
+                copyBtn.classList.add('copied');
+                setTimeout(() => {
+                    copyBtn.textContent = '复制结果';
+                    copyBtn.classList.remove('copied');
+                }, 1500);
+            }).catch(() => {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                copyBtn.textContent = '已复制！';
+                copyBtn.classList.add('copied');
+                setTimeout(() => {
+                    copyBtn.textContent = '复制结果';
+                    copyBtn.classList.remove('copied');
+                }, 1500);
+            });
+        }
+    </script>
+</body>
+</html>

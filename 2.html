@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>导航页</title>
+    <title>导航V2.1</title>
     <link rel="icon" href="icons/Favicon32px.ico" type="image/x-icon">
     <link rel="shortcut icon" href="icons/Favicon32px.ico">
     <link rel="apple-touch-icon" href="icons/Favicon32px.ico">
     <style>
+        /* === 全局重置 === */
         * {
             margin: 0;
             padding: 0;
@@ -51,6 +52,7 @@
             gap: 10px;
         }
 
+        /* === 卡片基础 === */
         .item {
             position: relative;
             background: white;
@@ -65,13 +67,14 @@
             flex-direction: column;
             align-items: center;
             cursor: default;
-            z-index: auto;
+            z-index: 1;
             margin-bottom: 4px;
         }
 
         .item:hover {
             transform: translateY(-3px);
             background: #eef2ff;
+            z-index: 100;
         }
 
         .item img {
@@ -87,7 +90,22 @@
             pointer-events: none;
         }
 
-        /* ----- 悬浮提示小窗 ----- */
+        /* --- 卡片内容容器（用于点击穿透） --- */
+        .card-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            pointer-events: none;   /* 让点击穿透到父容器 */
+        }
+        .card-content img {
+            pointer-events: none;   /* 确保图片也不拦截事件 */
+        }
+        .card-content .name {
+            pointer-events: none;
+        }
+
+        /* === 悬浮提示 tooltip === */
         .item .tooltip {
             visibility: hidden;
             opacity: 0;
@@ -101,18 +119,16 @@
             padding: 10px 16px;
             border-radius: 10px;
             font-size: 13px;
-            font-weight: 400;
             line-height: 1.6;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
             transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
-            z-index: 99999;
+            z-index: 999999;
             pointer-events: none;
             min-width: 200px;
             max-width: 280px;
             width: max-content;
             word-break: break-word;
             white-space: normal;
-            overflow: visible;
             margin-bottom: 8px;
         }
 
@@ -124,7 +140,6 @@
             transform: translateX(-50%);
             border: 7px solid transparent;
             border-top-color: #2d2d2d;
-            z-index: 99999;
         }
 
         .item:hover .tooltip {
@@ -133,6 +148,132 @@
             transform: translateX(-50%) translateY(-14px);
         }
 
+        /* === 带弹出菜单的卡片 === */
+        .item.popup-card {
+            z-index: 10;
+            cursor: pointer;
+        }
+        .item.popup-card:hover {
+            z-index: 100;
+        }
+
+        /* 弹出菜单容器 */
+        .item.popup-card .popup-menu {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            left: 50%;
+            background: #ffffff;
+            color: #1e293b;
+            padding: 14px 18px;
+            border-radius: 20px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+            z-index: 9999999;
+            pointer-events: none;
+            min-width: 220px;
+            max-width: 580px;
+            width: max-content;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(2px);
+            transition: none;
+        }
+
+        /* 默认向上 */
+        .item.popup-card .popup-menu {
+            bottom: 100%;
+            transform: translateX(-50%) translateY(-8px);
+        }
+        /* 向下 */
+        .item.popup-card .popup-menu.drop-down {
+            bottom: auto;
+            top: 100%;
+            transform: translateX(-50%) translateY(8px);
+        }
+
+        /* 激活状态（显示） */
+        .item.popup-card.active .popup-menu {
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(-12px);
+        }
+        .item.popup-card.active .popup-menu.drop-down {
+            transform: translateX(-50%) translateY(12px);
+        }
+
+        /* 小三角 */
+        .item.popup-card .popup-menu::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 7px solid transparent;
+            border-top-color: #ffffff;
+        }
+        .item.popup-card .popup-menu.drop-down::after {
+            top: auto;
+            bottom: 100%;
+            border-top-color: transparent;
+            border-bottom-color: #ffffff;
+        }
+
+        /* 菜单内部网格 — 8列 */
+        .popup-menu .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 6px 8px;
+            align-items: center;
+            justify-items: center;
+        }
+
+        .popup-menu .menu-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            text-decoration: none;
+            color: #1e293b;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 2px;
+            border-radius: 12px;
+            transition: background 0.15s, transform 0.1s;
+            white-space: nowrap;
+            min-width: 44px;
+        }
+
+        .popup-menu .menu-item:hover {
+            background: #eef2ff;
+            transform: scale(1.05);
+        }
+
+        .popup-menu .menu-item img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .popup-menu .menu-item span {
+            pointer-events: none;
+            font-size: 10px;
+            line-height: 1.2;
+        }
+
+        .popup-menu .menu-label {
+            font-size: 12px;
+            color: #64748b;
+            letter-spacing: 0.3px;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #e9edf2;
+            text-align: center;
+            font-weight: 500;
+            grid-column: 1 / -1;
+        }
+
+        /* === 响应式 === */
         .grid,
         .container,
         body {
@@ -152,6 +293,22 @@
                 font-size: 12px;
                 padding: 8px 12px;
             }
+            .item.popup-card .popup-menu {
+                min-width: 180px;
+                max-width: 440px;
+                padding: 12px 14px;
+            }
+            .popup-menu .menu-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .popup-menu .menu-item {
+                font-size: 10px;
+                padding: 4px 2px;
+            }
+            .popup-menu .menu-item img {
+                width: 24px;
+                height: 24px;
+            }
         }
         @media (max-width: 480px) {
             .grid {
@@ -163,6 +320,23 @@
                 font-size: 11px;
                 padding: 6px 10px;
             }
+            .item.popup-card .popup-menu {
+                min-width: 160px;
+                max-width: 320px;
+                padding: 10px 10px;
+            }
+            .popup-menu .menu-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 4px 6px;
+            }
+            .popup-menu .menu-item {
+                font-size: 9px;
+                padding: 2px 2px;
+            }
+            .popup-menu .menu-item img {
+                width: 20px;
+                height: 20px;
+            }
         }
     </style>
 </head>
@@ -171,12 +345,14 @@
     <div class="container">
         <h2 class="main-title">大造业务 常用导航</h2>
 
+        <!-- 开发成交 -->
         <div class="category-title" style="margin-top: 10px;">开发成交</div>
         <div class="grid">
-            <a class="item" href="https://www.baidu.com" target="_blank">
-                <img src="icons/baidu.svg" alt="">
+
+            <a class="item" href="https://www.baidu.com/" target="_blank">
+                <img src="icons/百度.svg" alt="百度">
                 <div class="name">百度</div>
-                <div class="tooltip">百度搜索，全球最大的中文搜索引擎，提供网页、图片、视频等搜索服务</div>
+                <div class="tooltip">百度搜索，全球最大的中文搜索引擎，提供网页、图片、视频等搜索服务。</div>
             </a>
             <a class="item" href="https://google.com" target="_blank">
                 <img src="icons/Google.svg" alt="">
@@ -213,6 +389,8 @@
                 <div class="name">豆包</div>
                 <div class="tooltip">字节跳动推出的AI对话助手，支持多轮对话、内容创作和知识问答</div>
             </a>
+
+
             <a class="item" href="https://sourcing.alibaba.com/" target="_blank">
                 <img src="icons/RFQ市场.svg" alt="">
                 <div class="name">国际站RFQ</div>
@@ -256,137 +434,271 @@
             </a>
         </div>
 
+        <!-- 客情维护 -->
         <div class="category-title">客情维护</div>
         <div class="grid">
             <a class="item" href="https://web.whatsapp.com/" target="_blank">
-                <img src="icons/WhatsApp.svg" alt="">
+                <img src="icons/WhatsApp.svg" alt="WhatsApp">
                 <div class="name">WhatsApp</div>
                 <div class="tooltip">WhatsApp即时通讯应用，全球用户量最大的消息应用，端到端加密</div>
             </a>
             <a class="item" href="https://www.linkedin.com/" target="_blank">
-                <img src="icons/Linkedin.svg" alt="">
+                <img src="icons/Linkedin.svg" alt="Linkedin">
                 <div class="name">Linkedin</div>
                 <div class="tooltip">LinkedIn职场社交平台，全球最大的职业社交网络，招聘和职业发展社区</div>
             </a>
             <a class="item" href="https://studio.youtube.com/" target="_blank">
-                <img src="icons/GoogleYouTube.svg" alt="">
+                <img src="icons/GoogleYouTube.svg" alt="YouTube Studio">
                 <div class="name">YouTube Studio</div>
                 <div class="tooltip">YouTube创作者工作室，视频数据分析、内容管理、收益统计一站式后台</div>
             </a>
             <a class="item" href="https://www.facebook.com/profile.php?id=61574767364571" target="_blank">
-                <img src="icons/Facebook.svg" alt="">
+                <img src="icons/Facebook.svg" alt="Facebook">
                 <div class="name">Facebook</div>
                 <div class="tooltip">全球最大的社交网络平台，连接朋友、家人和社区，分享生活动态</div>
             </a>
             <a class="item" href="https://www.instagram.com/" target="_blank">
-                <img src="icons/Instagram.svg" alt="">
+                <img src="icons/Instagram.svg" alt="Instagram">
                 <div class="name">Instagram</div>
                 <div class="tooltip">Instagram图片社交平台，以视觉内容为核心，支持照片、短视频和直播</div>
             </a>
             <a class="item" href="https://x.com/home" target="_blank">
-                <img src="icons/X.svg" alt="">
+                <img src="icons/X.svg" alt="X">
                 <div class="name">X</div>
                 <div class="tooltip">Twitter X社交平台，实时信息发布和讨论社区，全球新闻和热点聚集地</div>
             </a>
             <a class="item" href="https://www.tiktok.com/@Dazaocnc" target="_blank">
-                <img src="icons/TikTok.svg" alt="">
+                <img src="icons/TikTok.svg" alt="TikTok">
                 <div class="name">TikTok</div>
                 <div class="tooltip">TikTok国际版短视频平台，全球最受欢迎的短视频社交应用，覆盖150+国家</div>
             </a>
             <a class="item" href="https://vk.com/club228030395" target="_blank">
-                <img src="icons/VK.svg" alt="">
+                <img src="icons/VK.svg" alt="VK">
                 <div class="name">VK</div>
                 <div class="tooltip">VK俄罗斯最大社交平台，功能类似Facebook，在东欧地区拥有广泛用户</div>
             </a>
         </div>
 
-        <div class="category-title">公司网站</div>
-        <div class="grid">
-            <a class="item" href="https://jyhcn.en.alibaba.com/" target="_blank">
-                <img src="icons/阿里国际站.svg" alt="">
-                <div class="name">DAZAO</div>
-                <div class="tooltip">DAZAO阿里国际站店铺，面向全球客户的B2B机械制造和加工服务</div>
-            </a>
-            <a class="item" href="https://dazaocn.1688.com/" target="_blank">
-                <img src="icons/阿里1688.svg" alt="">
-                <div class="name">DAZAO</div>
-                <div class="tooltip">DAZAO 1688国内店铺，提供机械配件、模具加工等工业品供应</div>
-            </a>
-            <a class="item" href="https://dazao-machinery.en.made-in-china.com/" target="_blank">
-                <img src="icons/制造网.svg" alt="">
-                <div class="name">DAZAO</div>
-                <div class="tooltip">DAZAO中国制造网店铺，展示机械设备和加工能力，对接海外采购商</div>
-            </a>
-            <a class="item" href="https://www.dazaocn.com/" target="_blank">
-                <img src="icons/公司DAZAO.svg" alt="">
-                <div class="name">dazaocn.com</div>
-                <div class="tooltip">DAZAO公司官网，展示企业实力、产品信息和加工服务案例</div>
-            </a>
-            <a class="item" href="https://www.dazaocncmachining.com/" target="_blank">
-                <img src="icons/公司DAZAO.svg" alt="">
-                <div class="name">machining.com</div>
-                <div class="tooltip">DAZAO CNC加工专业网站，提供精密机械加工服务和技术支持</div>
-            </a>
-            <a class="item" href="https://moldmanufacturing.en.alibaba.com/" target="_blank">
-                <img src="icons/阿里国际站.svg" alt="">
-                <div class="name">BOKAIDI</div>
-                <div class="tooltip">BOKAIDI阿里国际站店铺，专注模具制造和注塑成型解决方案</div>
-            </a>
-            <a class="item" href="https://shuangyicn.1688.com/" target="_blank">
-                <img src="icons/阿里1688.svg" alt="">
-                <div class="name">BOKAIDI</div>
-                <div class="tooltip">BOKAIDI 1688国内店铺，提供模具配件和注塑产品供应服务</div>
-            </a>
-            <a class="item" href="https://bokaidi.cn/" target="_blank">
-                <img src="icons/公司BKD.svg" alt="">
-                <div class="name">bokaidi.cn</div>
-                <div class="tooltip">BOKAIDI公司官网，展示模具设计、制造和注塑加工一体化能力</div>
-            </a>
-        </div>
 
-        <div class="category-title">其它工具</div>
+        <!-- 合集 -->
+        <div class="category-title">合集</div>
         <div class="grid">
-            <a class="item" href="html字数统计.html" target="_blank">
-                <img src="icons/html字数统计.svg" alt="">
-                <div class="name">字符统计</div>
-                <div class="tooltip">在线字数统计工具，快速统计文本字数、字符数和段落数</div>
-            </a>
-            <a class="item" href="html转换大小写.html" target="_blank">
-                <img src="icons/html转换大小写.svg" alt="">
-                <div class="name">大小写转换</div>
-                <div class="tooltip">字母大小写转换工具，支持全大写、全小写和首字母大写等多种模式</div>
-            </a>
-            <a class="item" href="html转换花式字.html" target="_blank">
-                <img src="icons/html转换花式字.svg" alt="">
-                <div class="name">花式字母转换</div>
-                <div class="tooltip">花式字体生成工具，将普通文字转换为各种艺术字体和装饰样式</div>
-            </a>
-            <a class="item" href="html特殊符号大全.html" target="_blank">
-                <img src="icons/html特殊符号.svg" alt="">
-                <div class="name">特殊符号大全</div>
-                <div class="tooltip">特殊符号集合，提供各种符号、表情和特殊字符的快速复制使用</div>
-            </a>
-            <a class="item" href="html转换简体繁体.html" target="_blank">
-                <img src="icons/html转换简繁.svg" alt="">
-                <div class="name">繁体字转换</div>
-                <div class="tooltip">简体繁体互转工具，支持简繁转换和批量文本处理</div>
-            </a>
-            <a class="item" href="html查询ip信息.html" target="_blank">
-                <img src="icons/html查询ip信息.svg" alt="">
-                <div class="name">查询ip信息</div>
-                <div class="tooltip">IP归属地查询工具，快速获取IP地址的地理位置和网络信息</div>
-            </a>
-            <a class="item" href="html随机抽奖.html" target="_blank">
-                <img src="icons/html随机抽奖.svg" alt="">
-                <div class="name">随机抽奖</div>
-                <div class="tooltip">随机抽奖工具，支持自定义名单和奖项设置，公平随机抽取</div>
-            </a>
-            <a class="item" href="https://whoer.net/zh" target="_blank">
-                <img src="icons/whoer.png" alt="">
-                <div class="name">Whoer伪装度</div>
-                <div class="tooltip">Whoer IP伪装度检测，评估网络环境的安全性和匿名程度</div>
-            </a>
-        </div>
+
+            <!-- 百度 卡片（弹出菜单） -->
+            <div class="item popup-card" id="baiduCard"
+                 role="button"
+                 tabindex="0"
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-label="百度 全家桶菜单">
+                <!-- 内容区：视觉展示，事件穿透 -->
+                <div class="card-content">
+                    <img src="icons/百度.svg" alt="百度">
+                    <div class="name">百度</div>
+                </div>
+                <div class="tooltip">Google 全球最大的搜索引擎，提供网页、图片、地图、学术等全方位搜索</div>
+                <div class="popup-menu" id="baiduMenu" role="menu"></div>
+            </div>
+
+            <!-- Google 卡片（弹出菜单） -->
+            <div class="item popup-card" id="googleCard"
+                 role="button"
+                 tabindex="0"
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-label="Google 全家桶菜单">
+                <!-- 内容区：视觉展示，事件穿透 -->
+                <div class="card-content">
+                    <img src="icons/Google.svg" alt="Google">
+                    <div class="name">Google</div>
+                </div>
+                <div class="tooltip">Google 全球最大的搜索引擎，提供网页、图片、地图、学术等全方位搜索</div>
+                <div class="popup-menu" id="googleMenu" role="menu"></div>
+            </div>
+
+            <!-- 公司店铺卡片（弹出菜单） -->
+            <div class="item popup-card" id="dazaoCard"
+                 role="button"
+                 tabindex="0"
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-label="公司店铺">
+                <!-- 内容区：视觉展示，事件穿透 -->
+                <div class="card-content">
+                    <img src="icons/阿里国际站.svg" alt="Google">
+                    <div class="name">公司店铺</div>
+                </div>
+                <div class="tooltip">大造、双亿、嘉盈华 店铺。</div>
+                <div class="popup-menu" id="dazaoMenu" role="menu"></div>
+            </div>
+
+            <!-- 小工具卡片（弹出菜单） -->
+            <div class="item popup-card" id="gongjuCard"
+                 role="button"
+                 tabindex="0"
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-label="各类小工具">
+                <!-- 内容区：视觉展示，事件穿透 -->
+                <div class="card-content">
+                    <img src="icons/Hdaxiaoxie.svg" alt="Google">
+                    <div class="name">实用小工具</div>
+                </div>
+                <div class="tooltip">在线实用小工具：字符统计、大小写转换、简繁转换。</div>
+                <div class="popup-menu" id="gongjuMenu" role="menu"></div>
+            </div>
+
+
     </div>
+
+    <script>
+        // ============================================================
+        // 🚀 通用弹出菜单管理器（无过渡，直接显示/隐藏）
+        // ============================================================
+        function createPopupMenu(cardId, menuId, menuTitle, items) {
+            const card = document.getElementById(cardId);
+            const menu = document.getElementById(menuId);
+            if (!card || !menu) return;
+
+            // 生成菜单内容
+            let html = `<div class="menu-grid"><div class="menu-label">✦ ${menuTitle}</div>`;
+            items.forEach(item => {
+                html += `
+                        <a class="menu-item" href="${item.url}" target="_blank" role="menuitem">
+                            <img src="${item.icon}" alt="${item.name}">
+                            <span>${item.name}</span>
+                        </a>
+                    `;
+            });
+            html += `</div>`;
+            menu.innerHTML = html;
+
+            // 点击卡片切换
+            card.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const isActive = this.classList.contains('active');
+
+                if (isActive) {
+                    this.classList.remove('active');
+                    menu.classList.remove('drop-down');
+                    menu.style.visibility = '';
+                    menu.style.opacity = '';
+                    // 更新 ARIA 状态
+                    this.setAttribute('aria-expanded', 'false');
+                } else {
+                    // 打开：计算方向
+                    menu.classList.remove('drop-down');
+                    const rect = this.getBoundingClientRect();
+                    const menuHeight = 240;
+                    const spaceAbove = rect.top;
+                    const spaceBelow = window.innerHeight - rect.bottom;
+                    if (spaceAbove < menuHeight && spaceBelow > spaceAbove) {
+                        menu.classList.add('drop-down');
+                    }
+                    this.classList.add('active');
+                    this.setAttribute('aria-expanded', 'true');
+                }
+            });
+
+            // 点击页面其他地方关闭
+            document.addEventListener('click', function(e) {
+                if (!card.contains(e.target)) {
+                    card.classList.remove('active');
+                    menu.classList.remove('drop-down');
+                    card.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            // 菜单内点击链接后关闭
+            menu.addEventListener('click', function(e) {
+                if (e.target.closest('a')) {
+                    setTimeout(() => {
+                        card.classList.remove('active');
+                        menu.classList.remove('drop-down');
+                        card.setAttribute('aria-expanded', 'false');
+                    }, 80);
+                }
+                e.stopPropagation();
+            });
+
+            // 窗口resize重新计算方向
+            window.addEventListener('resize', function() {
+                if (card.classList.contains('active')) {
+                    menu.classList.remove('drop-down');
+                    const rect = card.getBoundingClientRect();
+                    const menuHeight = 240;
+                    const spaceAbove = rect.top;
+                    const spaceBelow = window.innerHeight - rect.bottom;
+                    if (spaceAbove < menuHeight && spaceBelow > spaceAbove) {
+                        menu.classList.add('drop-down');
+                    }
+                }
+            });
+
+            // 键盘支持：Enter/Space 触发点击
+            card.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.click();
+                }
+            });
+        }
+
+        // ============================================================
+        // 初始化 Google 菜单
+        // ============================================================
+createPopupMenu('baiduCard', 'baiduMenu', '百度弹出', [
+    { name: '搜索', url: 'https://www.baidu.com', icon: 'icons/百度.svg' },
+    { name: '文心', url: 'https://yiyan.baidu.com/', icon: 'icons/百度文心.svg' },
+    { name: '地图', url: 'https://map.baidu.com', icon: 'icons/百度地图.svg' },
+    { name: '网盘', url: 'https://pan.baidu.com', icon: 'icons/百度网盘.svg' },
+    { name: '爱奇艺', url: 'https://image.baidu.com', icon: 'icons/百度爱奇艺.png' },
+    { name: '爱企查', url: 'https://aiqicha.baidu.com/', icon: 'icons/百度爱企查.png' },
+    { name: '百家号', url: 'https://baijiahao.baidu.com/', icon: 'icons/百度百家号.svg' },
+    { name: '百科', url: 'https://baike.baidu.com', icon: 'icons/百度百科.png' },
+]);
+        
+createPopupMenu('googleCard', 'googleMenu', 'Google 全家桶', [
+            { name: '搜索', url: 'https://www.google.com/webhp?hl=zh', icon: 'icons/Google.svg' },
+            { name: 'Gemini', url: 'https://gemini.google.com/', icon: 'icons/GoogleGemini.svg' },
+            { name: 'Gmail', url: 'https://mail.google.com/', icon: 'icons/GoogleGmail.svg' },
+            { name: '翻译', url: 'https://translate.google.com/', icon: 'icons/GoogleTranslate.svg' },
+            { name: '地图', url: 'https://www.google.com/maps/', icon: 'icons/GoogleMaps.svg' },
+            { name: 'YouTube', url: 'https://www.youtube.com/', icon: 'icons/GoogleYouTube.svg' },
+            { name: '云盘', url: 'https://drive.google.com/', icon: 'icons/GoogleDrive.svg' },
+            { name: '指数', url: 'https://trends.google.com/home', icon: 'icons/GoogleTrends.svg' },
+            { name: '日历', url: 'https://calendar.google.com/', icon: 'icons/GoogleCalendar.svg' },
+            { name: 'Meet', url: 'https://meet.google.com/', icon: 'icons/GoogleMeet.svg' },
+            { name: '验证器', url: 'https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2', icon: 'icons/GoogleAuthenticator.svg' },
+            { name: '新闻', url: 'https://news.google.com/', icon: 'icons/GoogleNews.svg' },
+            { name: 'AI Studio', url: 'https://aistudio.google.com/', icon: 'icons/GoogleAIStudio.svg' },
+            { name: '广告', url: 'https://ads.google.com/', icon: 'icons/GoogleAds.svg' },
+            { name: '地球', url: 'https://earth.google.com/web/', icon: 'icons/GoogleEarth.svg' },
+            { name: '浏览器', url: 'https://www.google.cn/chrome/index.html', icon: 'icons/GoogleChrome.svg' },
+        ]);
+
+createPopupMenu('dazaoCard', 'dazaoMenu', '公司店铺', [
+    { name: 'DAZAO', url: 'https://jyhcn.en.alibaba.com/', icon: 'icons/阿里国际站.svg' },
+    { name: 'DAZAO', url: 'https://dazaocn.1688.com/', icon: 'icons/阿里1688.svg' },
+    { name: 'DAZAO', url: 'https://dazao-machinery.en.made-in-china.com/', icon: 'icons/制造网.svg' },
+    { name: 'dazaocn.com', url: 'https://www.dazaocn.com/', icon: 'icons/公司DAZAO.svg' },
+    { name: 'machining.com', url: 'https://www.dazaocncmachining.com/', icon: 'icons/公司DAZAO.svg' },
+    { name: 'BKD', url: 'https://moldmanufacturing.en.alibaba.com/', icon: 'icons/阿里国际站.svg' },
+    { name: 'BKD', url: 'https://shuangyicn.1688.com/', icon: 'icons/阿里1688.svg' },
+    { name: 'BKD', url: 'https://bokaidi.cn/', icon: 'icons/公司BKD.svg' },
+]);
+
+createPopupMenu('gongjuCard', 'gongjuMenu', '在线小工具', [
+    { name: '字符统计', url: 'Hzifutongji.html', icon: 'icons/Hzifutongji.svg' },
+    { name: '大小写转换', url: 'Hdaxiaoxie.html', icon: 'icons/Hdaxiaoxie.svg' },
+    { name: '花字母转换', url: 'Hhuazimu.html', icon: 'icons/Hhuazimu.svg' },
+    { name: '特殊符号大全', url: 'Hfuhaodaquan.html', icon: 'icons/Hfuhaodaquan.svg' },
+    { name: '繁体字转换', url: 'Hfantizi.html', icon: 'icons/Hfantizi.svg' },
+    { name: '查询ip信息', url: 'Hip.html', icon: 'icons/Hip.svg' },
+    { name: '随机抽奖', url: 'Hchoujiang.html', icon: 'icons/Hchoujiang.svg' },
+    { name: 'Whoer伪装度', url: 'https://whoer.net/zh', icon: 'icons/whoer.png' },
+    { name: '全球Ping', url: 'https://ping.chinaz.com/', icon: 'icons/站长之家.svg' },
+]);
+    </script>
 </body>
 </html>

@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=1.5">
+    <title>多边形战力分析图 | 白色主题默认</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #f5f7fa; font-family: 'Segoe UI', Roboto, 'Helvetica Neue', system-ui, sans-serif;
+            min-height: 100vh; display: flex; justify-content: center; align-items: flex-start;
+            padding: 20px; transition: background 0.5s ease; overflow-y: auto;
+        }
+        .dashboard {
+            max-width: 1300px; width: 100%; display: flex; flex-direction: column; gap: 1.5rem;
+            position: sticky; top: 20px;
+        }
+        .display-area {
+            display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: center;
+            gap: 2.5rem; background: rgba(245, 247, 250, 0.7); border-radius: 2.8rem; padding: 2rem;
+            border: 2px solid rgba(0, 0, 0, 0.2); flex-shrink: 0; min-height: 400px; max-height: 55vh;
+            transition: background 0.5s ease, border 0.5s ease;
+        }
+        .radar-wrapper { flex: 1.2; min-width: 320px; display: flex; justify-content: center; align-items: center; max-height: 100%; }
+        canvas {
+            display: block; max-width: 100%; max-height: 100%; height: auto; background: transparent;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.15)); transition: filter 0.5s ease;
+        }
+        canvas.no-shadow { filter: none !important; }
+        .hero-showcase { flex: 1; min-width: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 0.5rem; }
+        .hero-image-square {
+            width: 50%; aspect-ratio: 1 / 1; background: linear-gradient(135deg, #e0e5ec, #d0d5dc);
+            display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 12px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1); transition: transform 0.2s, background 0.5s, box-shadow 0.5s; position: relative;
+        }
+        .hero-image-square.bg-hidden { background: transparent !important; box-shadow: none !important; }
+        .hero-image-square:hover { transform: scale(1.02); }
+        #heroDisplayImage { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .placeholder-emoji { font-size: 3.5rem; opacity: 0.6; transition: opacity 0.4s; }
+
+        .hero-name-show {
+            font-size: 1.7rem; font-weight: 700; letter-spacing: 3px; text-align: center;
+            padding: 0.3rem 1.8rem; border-radius: 2rem; backdrop-filter: blur(5px);
+            word-break: break-word; max-width: 90%; transition: all 0.4s;
+            background: rgba(245, 247, 250, 0.5); color: #2a3a50; text-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            border: 2px solid rgba(0, 0, 0, 0.2); box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .hero-name-show.bg-hidden { background: transparent !important; backdrop-filter: none !important; border: 2px solid transparent !important; box-shadow: none !important; }
+
+        .hero-description {
+            font-size: 0.95rem; text-align: center; padding: 0.6rem 1.2rem;
+            border-radius: 1.5rem; backdrop-filter: blur(5px); line-height: 1.5;
+            max-width: 90%; word-break: break-word; font-style: italic; transition: all 0.4s;
+            background: rgba(245, 247, 250, 0.5); color: #2a3a50;
+            border: 2px solid rgba(0, 0, 0, 0.2); box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .hero-description.bg-hidden { background: transparent !important; backdrop-filter: none !important; border: 2px solid transparent !important; box-shadow: none !important; }
+
+        .control-panel {
+            background: rgba(245, 247, 250, 0.7); backdrop-filter: blur(20px); border-radius: 2.5rem;
+            padding: 1.8rem 2rem; border: 2px solid rgba(0, 0, 0, 0.2); display: flex;
+            flex-wrap: wrap; gap: 2rem; align-items: flex-start; transition: background 0.5s, border 0.5s;
+            flex-shrink: 0; overflow-y: auto; max-height: 38vh;
+        }
+        .control-panel::-webkit-scrollbar { width: 8px; }
+        .control-panel::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
+        .control-panel::-webkit-scrollbar-thumb { background: rgba(240, 180, 75, 0.5); border-radius: 10px; }
+        .settings-area { flex: 3; display: flex; flex-direction: column; gap: 1.2rem; min-width: 0; }
+        .config-card {
+            background: rgba(255, 255, 255, 0.5); border-radius: 1.5rem; padding: 0.9rem 1.5rem;
+            border: 1px solid rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 1.2rem;
+            flex-wrap: wrap; transition: background 0.5s, border 0.5s;
+        }
+        .config-label { color: #4a5a70; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
+        .config-emoji { font-size: 1.1rem; }
+        .config-control { display: flex; align-items: center; gap: 0.6rem; flex: 1; min-width: 120px; }
+        .config-slider { flex: 1; cursor: pointer; background: rgba(60, 60, 80, 0.6); height: 7px; border-radius: 5px; appearance: none; outline: none; }
+        .config-slider::-webkit-slider-thumb { appearance: none; width: 20px; height: 20px; background: radial-gradient(circle, #f9d56e, #b8860b); border-radius: 50%; box-shadow: 0 0 12px #f0b34b; border: 2px solid white; cursor: pointer; }
+        .config-number-input { width: 55px; background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.2); border-radius: 1.5rem; padding: 0.35rem 0.5rem; color: #b8860b; font-weight: bold; font-size: 0.95rem; text-align: center; outline: none; transition: 0.2s; }
+        .config-number-input:focus { border-color: #f0b34b; box-shadow: 0 0 10px #f0b34b55; }
+        .config-number-input::-webkit-inner-spin-button, .config-number-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .config-color-input { width: 36px; height: 32px; border: 2px solid rgba(0,0,0,0.2); border-radius: 0.7rem; cursor: pointer; background: transparent; padding: 2px; transition: 0.2s; }
+        .config-color-input:focus { border-color: #f0b34b; box-shadow: 0 0 8px #f0b34b55; }
+        .config-badge { background: rgba(240, 180, 70, 0.3); color: #8b6914; padding: 0.3rem 0.9rem; border-radius: 2rem; font-weight: bold; font-size: 0.9rem; border: 1px solid rgba(240,180,70,0.4); transition: background 0.5s, color 0.5s; white-space: nowrap; }
+        .preset-btn { border: 1px solid rgba(0,0,0,0.2); font-weight: bold; cursor: pointer; font-size: 0.8rem; padding: 0.4rem 1rem; border-radius: 2rem; transition: 0.25s; background: rgba(255,255,255,0.5); color: #4a5a70; white-space: nowrap; }
+        .preset-btn:hover { border-color: #f0b34b; color: #f0b34b; background: rgba(0,0,0,0.1); }
+        .preset-btn.active { border-color: #f0b34b; background: rgba(240, 180, 75, 0.25); color: #8b6914; }
+        .toggle-switch-container { display: flex; align-items: center; gap: 0.5rem; }
+        .toggle-label { color: #4a5a70; font-weight: 500; font-size: 0.8rem; white-space: nowrap; }
+        .toggle-switch { position: relative; width: 40px; height: 22px; background: rgba(60, 60, 80, 0.6); border-radius: 11px; cursor: pointer; transition: background 0.3s; border: 1px solid rgba(0,0,0,0.2); flex-shrink: 0; }
+        .toggle-switch.active { background: #f0b34b; border-color: #f0b34b; box-shadow: 0 0 8px rgba(240, 179, 75, 0.5); }
+        .toggle-switch::after { content: ''; position: absolute; top: 1.5px; left: 1.5px; width: 17px; height: 17px; background: white; border-radius: 50%; transition: transform 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .toggle-switch.active::after { transform: translateX(18px); }
+        .sliders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.9rem 1.5rem; }
+        .attribute-item { display: flex; flex-direction: column; gap: 0.4rem; background: rgba(255,255,255,0.5); padding: 0.7rem; border-radius: 1rem; border: 1px solid rgba(0,0,0,0.08); transition: background 0.5s, border 0.5s; }
+        .attribute-header { display: flex; justify-content: space-between; align-items: center; color: #4a5a70; font-weight: 500; font-size: 0.85rem; }
+        .attr-label-input { background: transparent; border: none; border-bottom: 1px dashed rgba(0,0,0,0.3); color: #8b6914; font-weight: 600; font-size: 0.9rem; width: 65px; padding: 0.15rem 0.2rem; outline: none; transition: 0.2s; }
+        .attr-label-input:focus { border-bottom-color: #f0b34b; color: #b8860b; }
+        .value-control { display: flex; align-items: center; gap: 0.4rem; }
+        .value-input { width: 50px; background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.2); border-radius: 1.5rem; padding: 0.15rem 0.4rem; color: #b8860b; font-weight: bold; font-size: 0.85rem; text-align: center; outline: none; transition: 0.2s; }
+        .value-input:focus { border-color: #f0b34b; box-shadow: 0 0 8px #f0b34b55; background: rgba(255,255,255,0.9); }
+        .value-input::-webkit-inner-spin-button, .value-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=range] { width: 100%; cursor: pointer; background: rgba(60, 60, 80, 0.6); height: 6px; border-radius: 5px; appearance: none; outline: none; }
+        input[type=range]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; background: radial-gradient(circle, #f9d56e, #b8860b); border-radius: 50%; box-shadow: 0 0 12px #f0b34b; border: 2px solid white; cursor: pointer; }
+        .action-group { flex: 1.2; display: flex; flex-direction: column; gap: 0.8rem; align-items: center; justify-content: flex-start; min-width: 200px; }
+        .input-field { width: 100%; background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.2); border-radius: 2.5rem; padding: 0.6rem 1.2rem; font-size: 0.95rem; font-weight: 500; color: #4a5a70; outline: none; backdrop-filter: blur(8px); transition: 0.3s; text-align: center; }
+        .input-field:focus { border-color: #f0b34b; box-shadow: 0 0 14px #f0b34b55; background: rgba(255,255,255,0.9); }
+        .description-input { border-radius: 1.8rem; resize: vertical; min-height: 55px; font-family: inherit; text-align: left; padding: 0.6rem 1.2rem; }
+        .button-row { display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: center; width: 100%; }
+        .upload-btn, .reset-btn { border: none; font-weight: bold; display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.85rem; padding: 0.6rem 1.3rem; border-radius: 2.5rem; transition: 0.25s; background: linear-gradient(135deg, #8a9ab0, #6a7a90); box-shadow: 0 4px 10px rgba(0,0,0,0.2); border: 1px solid rgba(0,0,0,0.15); color: #ffffff; white-space: nowrap; }
+        .upload-btn:hover { background: linear-gradient(135deg, #9aabbf, #7a8b9f); color: white; border-color: #f0b34b; }
+        .reset-btn { background: rgba(220, 180, 100, 0.25); border: 1px solid #b49450; color: #8b6914; }
+        .reset-btn:hover { background: #b49450; color: #0b0b10; border-color: #ffd966; }
+        .upload-hint { font-size: 0.7rem; color: #7a8a9a; margin-top: -0.15rem; text-align: center; }
+        @media (max-width: 750px) {
+            .display-area { flex-direction: column; max-height: 50vh; }
+            .hero-image-square { width: 60%; }
+            .radar-wrapper { min-width: 280px; }
+            .control-panel { max-height: 40vh; }
+        }
+    </style>
+</head>
+<body id="mainBody">
+    <div class="dashboard">
+        <div class="display-area" id="displayArea">
+            <div class="radar-wrapper">
+                <canvas id="radarCanvas" width="500" height="500" aria-label="多边形战力分析图"></canvas>
+            </div>
+            <div class="hero-showcase">
+                <div class="hero-image-square" id="heroImageSquare">
+                    <span class="placeholder-emoji" id="placeholderEmoji">🦸</span>
+                    <img id="heroDisplayImage" src="#" alt="主角图片">
+                </div>
+                <div class="hero-name-show" id="heroNameShow">星辰勇者</div>
+                <div class="hero-description" id="heroDescriptionShow">一位勇敢的冒险者，肩负着拯救世界的使命。</div>
+            </div>
+        </div>
+        <div class="control-panel" id="controlPanel">
+            <div class="settings-area">
+                <div class="config-card" style="flex-wrap: wrap;">
+                    <span class="config-label"><span class="config-emoji">🎨</span> 背景主题</span>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="preset-btn" data-preset="dark">🌙 深色</button>
+                        <button class="preset-btn active" data-preset="white">☀️ 白色</button>
+                        <button class="preset-btn" data-preset="green">🍃 绿幕</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 0.3rem;"><span class="toggle-label">背景色</span><input type="color" class="config-color-input" id="bgColorInput" value="#f5f7fa"></div>
+                        <div style="display: flex; align-items: center; gap: 0.3rem;"><span class="toggle-label">文字色</span><input type="color" class="config-color-input" id="textColorInput" value="#2a3a50"></div>
+                    </div>
+                </div>
+                <div class="config-card" style="justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                        <span class="config-label"><span class="config-emoji">🔷</span> 边数</span>
+                        <div class="config-control"><input type="range" class="config-slider" id="sidesSlider" min="3" max="10" value="6" step="1"><input type="number" class="config-number-input" id="sidesNumberInput" min="3" max="10" value="6"></div>
+                        <span class="config-badge" id="currentSidesBadge">6边形</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                        <div class="toggle-switch-container"><span class="toggle-label">🖼️ 图片背景</span><div class="toggle-switch active" id="toggleImageBg"></div></div>
+                        <div class="toggle-switch-container"><span class="toggle-label">📛 名字背景</span><div class="toggle-switch active" id="toggleNameBg"></div></div>
+                        <div class="toggle-switch-container"><span class="toggle-label">📝 介绍背景</span><div class="toggle-switch active" id="toggleDescBg"></div></div>
+                        <div class="toggle-switch-container"><span class="toggle-label">✨ 多边形阴影</span><div class="toggle-switch active" id="toggleCanvasShadow"></div></div>
+                    </div>
+                </div>
+                <div class="config-card">
+                    <span class="config-label"><span class="config-emoji">🕸️</span> 网格线(0-100)</span>
+                    <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 0.4rem;"><span class="toggle-label">📏 粗细</span><input type="range" class="config-slider" id="gridWidthSlider" min="0.5" max="5" value="3" step="0.1" style="width:70px"><input type="number" class="config-number-input" id="gridWidthInput" min="0.5" max="5" value="3" step="0.1" style="width:48px"></div>
+                        <div style="display: flex; align-items: center; gap: 0.4rem;"><span class="toggle-label">👁️ 透明度</span><input type="range" class="config-slider" id="gridOpacitySlider" min="0.05" max="1" value="1" step="0.01" style="width:70px"><input type="number" class="config-number-input" id="gridOpacityInput" min="0.05" max="1" value="1" step="0.01" style="width:48px"></div>
+                        <div style="display: flex; align-items: center; gap: 0.4rem;"><span class="toggle-label">🎨 颜色</span><input type="color" class="config-color-input" id="gridColorInput" value="#ffffff"></div>
+                    </div>
+                </div>
+                <div class="config-card">
+                    <span class="config-label"><span class="config-emoji">📊</span> 数据(0-200)</span>
+                    <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 0.4rem;"><span class="toggle-label">👁️ 透明度</span><input type="range" class="config-slider" id="dataOpacitySlider" min="0.1" max="1" value="1" step="0.01" style="width:70px"><input type="number" class="config-number-input" id="dataOpacityInput" min="0.1" max="1" value="1" step="0.01" style="width:48px"></div>
+                        <div style="display: flex; align-items: center; gap: 0.4rem;"><span class="toggle-label">🎨 颜色</span><input type="color" class="config-color-input" id="dataColorInput" value="#f0b44b"></div>
+                    </div>
+                </div>
+                <div class="sliders-grid" id="slidersContainer"></div>
+            </div>
+            <div class="action-group">
+                <input type="text" class="input-field" id="heroNameInput" placeholder="主角名称" value="星辰勇者" maxlength="20">
+                <textarea class="input-field description-input" id="heroDescriptionInput" placeholder="添加文字介绍..." rows="2" maxlength="120">一位勇敢的冒险者，肩负着拯救世界的使命。</textarea>
+                <div class="button-row">
+                    <button class="upload-btn" id="uploadBtn">📷 上传图片</button>
+                    <button class="reset-btn" id="resetDefaultBtn">🔄 重置属性</button>
+                </div>
+                <input type="file" id="fileInput" accept="image/*,.jpg,.jpeg,.png,.svg,.gif,.webp" style="display: none;">
+                <div class="upload-hint">支持 JPG, PNG, SVG, GIF</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const GRID_MAX = 100;
+            const DATA_MAX = 200;
+            const DEFAULT_SIDES = 6;
+            const PRESETS = {
+                dark: { bg: '#1a1e2b', text: '#f7e9c3', bodyBg: 'linear-gradient(145deg, #1a1e2b 0%, #2a2f3f 100%)' },
+                white: { bg: '#f5f7fa', text: '#2a3a50', bodyBg: 'linear-gradient(145deg, #f0f2f5 0%, #e0e5ec 100%)' },
+                green: { bg: '#00b140', text: '#ffffff', bodyBg: '#00b140' }
+            };
+            // 默认数值依次为10,20,30,40,50,60
+            const DEFAULT_ATTRIBUTES_MAP = {
+                3: [{ label: "攻击", value: 10 }, { label: "防御", value: 20 }, { label: "速度", value: 30 }],
+                4: [{ label: "力量", value: 10 }, { label: "魔力", value: 20 }, { label: "敏捷", value: 30 }, { label: "耐力", value: 40 }],
+                5: [{ label: "金", value: 10 }, { label: "木", value: 20 }, { label: "水", value: 30 }, { label: "火", value: 40 }, { label: "土", value: 50 }],
+                6: [{ label: "力量", value: 10 }, { label: "魔力", value: 20 }, { label: "敏捷", value: 30 }, { label: "耐力", value: 40 }, { label: "智慧", value: 50 }, { label: "魅力", value: 60 }],
+                7: [{ label: "力量", value: 10 }, { label: "魔力", value: 20 }, { label: "敏捷", value: 30 }, { label: "耐力", value: 40 }, { label: "智慧", value: 50 }, { label: "魅力", value: 60 }, { label: "幸运", value: 70 }],
+                8: [{ label: "生命", value: 10 }, { label: "攻击", value: 20 }, { label: "防御", value: 30 }, { label: "速度", value: 40 }, { label: "魔力", value: 50 }, { label: "抗性", value: 60 }, { label: "命中", value: 70 }, { label: "闪避", value: 80 }],
+                9: [{ label: "力", value: 10 }, { label: "魔", value: 20 }, { label: "敏", value: 30 }, { label: "耐", value: 40 }, { label: "智", value: 50 }, { label: "魅", value: 60 }, { label: "运", value: 70 }, { label: "体", value: 80 }, { label: "精", value: 90 }],
+                10: [{ label: "力量", value: 10 }, { label: "魔力", value: 20 }, { label: "敏捷", value: 30 }, { label: "耐力", value: 40 }, { label: "智慧", value: 50 }, { label: "魅力", value: 60 }, { label: "幸运", value: 70 }, { label: "意志", value: 80 }, { label: "感知", value: 90 }, { label: "魅力2", value: 100 }]
+            };
+
+            let currentSides = DEFAULT_SIDES;
+            let currentPreset = 'white';
+            let bgColor = PRESETS.white.bg;
+            let textColor = PRESETS.white.text;
+            let attributes = JSON.parse(JSON.stringify(DEFAULT_ATTRIBUTES_MAP[DEFAULT_SIDES]));
+            let gridWidth = 3.0, gridOpacity = 1.0, gridColor = '#ffffff';
+            let dataOpacity = 1.0, dataColor = '#f0b44b';
+            let bgState = { image: true, name: true, description: true };
+            let canvasShadow = true;
+
+            const canvas = document.getElementById('radarCanvas');
+            const ctx = canvas.getContext('2d');
+            const slidersContainer = document.getElementById('slidersContainer');
+            const body = document.getElementById('mainBody');
+            const displayArea = document.getElementById('displayArea');
+            const controlPanel = document.getElementById('controlPanel');
+            const heroNameShow = document.getElementById('heroNameShow');
+            const heroDescriptionShow = document.getElementById('heroDescriptionShow');
+            const heroDisplayImage = document.getElementById('heroDisplayImage');
+            const placeholderEmoji = document.getElementById('placeholderEmoji');
+            const heroImageSquare = document.getElementById('heroImageSquare');
+            const heroNameInput = document.getElementById('heroNameInput');
+            const heroDescriptionInput = document.getElementById('heroDescriptionInput');
+            const fileInput = document.getElementById('fileInput');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const resetBtn = document.getElementById('resetDefaultBtn');
+            const sidesSlider = document.getElementById('sidesSlider');
+            const sidesNumberInput = document.getElementById('sidesNumberInput');
+            const currentSidesBadge = document.getElementById('currentSidesBadge');
+            const gridWidthSlider = document.getElementById('gridWidthSlider');
+            const gridWidthInput = document.getElementById('gridWidthInput');
+            const gridOpacitySlider = document.getElementById('gridOpacitySlider');
+            const gridOpacityInput = document.getElementById('gridOpacityInput');
+            const gridColorInput = document.getElementById('gridColorInput');
+            const dataOpacitySlider = document.getElementById('dataOpacitySlider');
+            const dataOpacityInput = document.getElementById('dataOpacityInput');
+            const dataColorInput = document.getElementById('dataColorInput');
+            const bgColorInput = document.getElementById('bgColorInput');
+            const textColorInput = document.getElementById('textColorInput');
+            const presetButtons = document.querySelectorAll('.preset-btn');
+            const toggleImageBg = document.getElementById('toggleImageBg');
+            const toggleNameBg = document.getElementById('toggleNameBg');
+            const toggleDescBg = document.getElementById('toggleDescBg');
+            const toggleCanvasShadow = document.getElementById('toggleCanvasShadow');
+
+            const SIZE = 500;
+            canvas.width = SIZE; canvas.height = SIZE;
+            const CENTER = { x: SIZE/2, y: SIZE/2 };
+            const GRID_RADIUS = 120;
+            const DATA_RADIUS = GRID_RADIUS * (DATA_MAX / GRID_MAX);
+            const LEVELS = 5;
+
+            function hexToRgba(hex, alpha) {
+                const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+                return `rgba(${r},${g},${b},${alpha})`;
+            }
+
+            function getPolygonPoints(count, radius, centerX, centerY, offsetAngle = -Math.PI/2) {
+                const points = [];
+                for (let i = 0; i < count; i++) {
+                    const angle = offsetAngle + (i * 2 * Math.PI / count);
+                    points.push({ x: centerX + radius * Math.cos(angle), y: centerY + radius * Math.sin(angle), angle });
+                }
+                return points;
+            }
+
+            function isDarkBg() {
+                return currentPreset === 'dark' || (!PRESETS[currentPreset] && parseInt(bgColor.slice(1,3),16) < 100);
+            }
+
+            function updateThemeStyles() {
+                body.style.background = PRESETS[currentPreset] ? PRESETS[currentPreset].bodyBg : bgColor;
+                displayArea.style.background = hexToRgba(bgColor, 0.7);
+                controlPanel.style.background = hexToRgba(bgColor, 0.7);
+                
+                const dark = isDarkBg();
+                const borderColor = dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)';
+                displayArea.style.border = `2px solid ${borderColor}`;
+                controlPanel.style.border = `2px solid ${borderColor}`;
+                
+                heroNameShow.style.color = textColor;
+                heroNameShow.style.textShadow = dark ? '0 4px 12px black' : '0 2px 6px rgba(0,0,0,0.1)';
+                heroNameShow.style.borderColor = dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)';
+                if (bgState.name) heroNameShow.style.background = hexToRgba(bgColor, 0.5);
+                
+                heroDescriptionShow.style.color = textColor;
+                heroDescriptionShow.style.borderColor = dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)';
+                if (bgState.description) heroDescriptionShow.style.background = hexToRgba(bgColor, 0.5);
+                
+                if (bgState.image) heroImageSquare.style.background = dark ? `linear-gradient(135deg, ${hexToRgba(bgColor, 0.8)}, ${hexToRgba(bgColor, 0.6)})` : `linear-gradient(135deg, #e0e5ec, #d0d5dc)`;
+                
+                drawRadar();
+            }
+
+            function applyPreset(preset) {
+                currentPreset = preset;
+                bgColor = PRESETS[preset].bg;
+                textColor = PRESETS[preset].text;
+                bgColorInput.value = bgColor;
+                textColorInput.value = textColor;
+                presetButtons.forEach(b => b.classList.remove('active'));
+                document.querySelector(`.preset-btn[data-preset="${preset}"]`).classList.add('active');
+                updateThemeStyles();
+            }
+
+            function updateCanvasShadow() {
+                if (canvasShadow) canvas.classList.remove('no-shadow');
+                else canvas.classList.add('no-shadow');
+            }
+
+            function drawRadar() {
+                ctx.clearRect(0, 0, SIZE, SIZE);
+                const count = attributes.length;
+                if (count === 0) return;
+
+                const gridStrokeColor = hexToRgba(gridColor, gridOpacity);
+                const axisStrokeColor = hexToRgba(gridColor, gridOpacity * 0.85);
+                const dataFillColor = hexToRgba(dataColor, dataOpacity);
+                const dataStrokeColor = hexToRgba(dataColor, Math.min(dataOpacity + 0.2, 1));
+                const labelFillColor = textColor;
+                const valueFillColor = textColor;
+
+                if (attributes.some(a => a.value > 0)) {
+                    const outerPtsData = getPolygonPoints(count, DATA_RADIUS, CENTER.x, CENTER.y);
+                    const valuePoints = attributes.map((attr, i) => {
+                        const norm = Math.min(Math.max(attr.value, 0), DATA_MAX) / DATA_MAX;
+                        const r = norm * DATA_RADIUS;
+                        return { x: CENTER.x + r * Math.cos(outerPtsData[i].angle), y: CENTER.y + r * Math.sin(outerPtsData[i].angle) };
+                    });
+
+                    ctx.beginPath();
+                    ctx.moveTo(valuePoints[0].x, valuePoints[0].y);
+                    for (let i = 1; i < valuePoints.length; i++) ctx.lineTo(valuePoints[i].x, valuePoints[i].y);
+                    ctx.closePath();
+                    ctx.fillStyle = dataFillColor;
+                    ctx.fill();
+                    ctx.strokeStyle = dataStrokeColor;
+                    ctx.lineWidth = 3.0;
+                    ctx.stroke();
+
+                    valuePoints.forEach((p, i) => {
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, 5.5, 0, 2*Math.PI);
+                        ctx.fillStyle = '#ffffff';
+                        ctx.shadowColor = hexToRgba(dataColor, 0.8);
+                        ctx.shadowBlur = 10;
+                        ctx.fill();
+                        ctx.strokeStyle = hexToRgba(dataColor, 1);
+                        ctx.lineWidth = 2.0;
+                        ctx.stroke();
+                        ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
+                        ctx.font = 'bold 11px "Segoe UI"';
+                        ctx.fillStyle = valueFillColor;
+                        ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                        ctx.shadowBlur = 6;
+                        ctx.fillText(attributes[i].value, p.x, p.y - 15);
+                        ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
+                    });
+                }
+
+                const outerPtsGrid = getPolygonPoints(count, GRID_RADIUS, CENTER.x, CENTER.y);
+                outerPtsGrid.forEach(p => {
+                    ctx.beginPath();
+                    ctx.moveTo(CENTER.x, CENTER.y);
+                    ctx.lineTo(p.x, p.y);
+                    ctx.strokeStyle = axisStrokeColor;
+                    ctx.lineWidth = gridWidth * 0.9;
+                    ctx.stroke();
+                });
+
+                for (let level = LEVELS; level >= 1; level--) {
+                    const r = (GRID_RADIUS / LEVELS) * level;
+                    const pts = getPolygonPoints(count, r, CENTER.x, CENTER.y);
+                    ctx.beginPath();
+                    ctx.moveTo(pts[0].x, pts[0].y);
+                    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+                    ctx.closePath();
+                    ctx.strokeStyle = gridStrokeColor;
+                    ctx.lineWidth = gridWidth;
+                    ctx.stroke();
+                }
+
+                const labelDistance = GRID_RADIUS + 15;
+                const labelPts = getPolygonPoints(count, labelDistance, CENTER.x, CENTER.y);
+                ctx.font = 'bold 14px "Segoe UI", "Microsoft YaHei"';
+                ctx.fillStyle = labelFillColor;
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 6;
+                attributes.forEach((attr, i) => ctx.fillText(attr.label, labelPts[i].x, labelPts[i].y));
+                ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
+            }
+
+            function updateBackgroundVisibility() {
+                if (bgState.image) heroImageSquare.classList.remove('bg-hidden');
+                else heroImageSquare.classList.add('bg-hidden');
+                if (bgState.name) heroNameShow.classList.remove('bg-hidden');
+                else heroNameShow.classList.add('bg-hidden');
+                if (bgState.description) heroDescriptionShow.classList.remove('bg-hidden');
+                else heroDescriptionShow.classList.add('bg-hidden');
+                updateThemeStyles();
+            }
+
+            function toggleBackground(type) {
+                bgState[type] = !bgState[type];
+                const m = { image: toggleImageBg, name: toggleNameBg, description: toggleDescBg };
+                if (bgState[type]) m[type].classList.add('active');
+                else m[type].classList.remove('active');
+                updateBackgroundVisibility();
+            }
+
+            function updateAttributeValue(index, newValue) {
+                let val = parseInt(newValue, 10); if (isNaN(val)) val = 0;
+                val = Math.min(Math.max(val, 0), DATA_MAX); attributes[index].value = val;
+                drawRadar(); syncControlValue(index, val);
+            }
+
+            function syncControlValue(index, value) {
+                const s = document.getElementById(`slider-${index}`), n = document.getElementById(`number-${index}`);
+                if (s) s.value = value; if (n) n.value = value;
+            }
+
+            function renderSliders() {
+                slidersContainer.innerHTML = '';
+                attributes.forEach((attr, idx) => {
+                    const div = document.createElement('div'); div.className = 'attribute-item';
+                    const header = document.createElement('div'); header.className = 'attribute-header';
+                    const labelInput = document.createElement('input'); labelInput.type = 'text'; labelInput.className = 'attr-label-input';
+                    labelInput.value = attr.label; labelInput.maxLength = 8;
+                    labelInput.addEventListener('input', e => { attributes[idx].label = e.target.value || '属性'; drawRadar(); });
+                    const valueControl = document.createElement('div'); valueControl.className = 'value-control';
+                    const numberInput = document.createElement('input'); numberInput.type = 'number'; numberInput.id = `number-${idx}`;
+                    numberInput.className = 'value-input'; numberInput.value = attr.value; numberInput.min = 0; numberInput.max = DATA_MAX; numberInput.step = 1;
+                    numberInput.addEventListener('input', e => updateAttributeValue(idx, e.target.value));
+                    numberInput.addEventListener('blur', e => {
+                        let val = parseInt(e.target.value, 10); if (isNaN(val)) val = 0;
+                        val = Math.min(Math.max(val, 0), DATA_MAX); e.target.value = val;
+                        attributes[idx].value = val; drawRadar(); syncControlValue(idx, val);
+                    });
+                    header.appendChild(labelInput); header.appendChild(valueControl); valueControl.appendChild(numberInput);
+                    const slider = document.createElement('input'); slider.type = 'range'; slider.id = `slider-${idx}`;
+                    slider.min = 0; slider.max = DATA_MAX; slider.value = attr.value; slider.step = 1;
+                    slider.addEventListener('input', e => {
+                        const val = parseInt(e.target.value, 10); attributes[idx].value = val;
+                        if (numberInput) numberInput.value = val; drawRadar();
+                    });
+                    div.appendChild(header); div.appendChild(slider); slidersContainer.appendChild(div);
+                });
+            }
+
+            function changeSides(newSides) {
+                const sides = parseInt(newSides, 10); if (isNaN(sides) || sides < 3 || sides > 10) return;
+                currentSides = sides; sidesSlider.value = sides; sidesNumberInput.value = sides;
+                currentSidesBadge.textContent = `${sides}边形`;
+                if (DEFAULT_ATTRIBUTES_MAP[sides]) attributes = JSON.parse(JSON.stringify(DEFAULT_ATTRIBUTES_MAP[sides]));
+                else { while (attributes.length < sides) attributes.push({ label: `属性${attributes.length+1}`, value: attributes.length * 10 + 10 }); attributes = attributes.slice(0, sides); }
+                renderSliders(); drawRadar();
+            }
+
+            function resetToDefault() {
+                if (DEFAULT_ATTRIBUTES_MAP[currentSides]) attributes = JSON.parse(JSON.stringify(DEFAULT_ATTRIBUTES_MAP[currentSides]));
+                renderSliders(); drawRadar();
+            }
+
+            function handleImageUpload(file) {
+                if (!file) return;
+                if (!['image/jpeg','image/png','image/svg+xml','image/gif','image/webp'].includes(file.type)) { alert('请选择 JPG, PNG, SVG, GIF 或 WebP 格式。'); return; }
+                const reader = new FileReader();
+                reader.onload = e => { heroDisplayImage.src = e.target.result; heroDisplayImage.style.display = 'block'; placeholderEmoji.style.display = 'none'; };
+                reader.onerror = () => alert('图片读取失败。');
+                reader.readAsDataURL(file);
+            }
+
+            presetButtons.forEach(b => b.addEventListener('click', () => applyPreset(b.dataset.preset)));
+            bgColorInput.addEventListener('input', e => { bgColor = e.target.value; currentPreset = null; presetButtons.forEach(b => b.classList.remove('active')); updateThemeStyles(); });
+            textColorInput.addEventListener('input', e => { textColor = e.target.value; drawRadar(); });
+            toggleImageBg.addEventListener('click', () => toggleBackground('image'));
+            toggleNameBg.addEventListener('click', () => toggleBackground('name'));
+            toggleDescBg.addEventListener('click', () => toggleBackground('description'));
+            toggleCanvasShadow.addEventListener('click', () => {
+                canvasShadow = !canvasShadow;
+                if (canvasShadow) toggleCanvasShadow.classList.add('active');
+                else toggleCanvasShadow.classList.remove('active');
+                updateCanvasShadow();
+            });
+            sidesSlider.addEventListener('input', e => changeSides(e.target.value));
+            sidesNumberInput.addEventListener('input', e => changeSides(e.target.value));
+            sidesNumberInput.addEventListener('blur', e => { let v = parseInt(e.target.value,10); if(isNaN(v)) v=6; v=Math.min(Math.max(v,3),10); changeSides(v); });
+            gridWidthSlider.addEventListener('input', e => { gridWidth=parseFloat(e.target.value); gridWidthInput.value=gridWidth; drawRadar(); });
+            gridWidthInput.addEventListener('input', e => { gridWidth=parseFloat(e.target.value)||3; gridWidth=Math.min(Math.max(gridWidth,0.5),5); gridWidthSlider.value=gridWidth; drawRadar(); });
+            gridWidthInput.addEventListener('blur', e => { gridWidth=parseFloat(e.target.value)||3; gridWidth=Math.min(Math.max(gridWidth,0.5),5); gridWidthInput.value=gridWidth; gridWidthSlider.value=gridWidth; drawRadar(); });
+            gridOpacitySlider.addEventListener('input', e => { gridOpacity=parseFloat(e.target.value); gridOpacityInput.value=gridOpacity; drawRadar(); });
+            gridOpacityInput.addEventListener('input', e => { gridOpacity=parseFloat(e.target.value)||1; gridOpacity=Math.min(Math.max(gridOpacity,0.05),1); gridOpacitySlider.value=gridOpacity; drawRadar(); });
+            gridOpacityInput.addEventListener('blur', e => { gridOpacity=parseFloat(e.target.value)||1; gridOpacity=Math.min(Math.max(gridOpacity,0.05),1); gridOpacityInput.value=gridOpacity; gridOpacitySlider.value=gridOpacity; drawRadar(); });
+            gridColorInput.addEventListener('input', e => { gridColor=e.target.value; drawRadar(); });
+            dataOpacitySlider.addEventListener('input', e => { dataOpacity=parseFloat(e.target.value); dataOpacityInput.value=dataOpacity; drawRadar(); });
+            dataOpacityInput.addEventListener('input', e => { dataOpacity=parseFloat(e.target.value)||1; dataOpacity=Math.min(Math.max(dataOpacity,0.1),1); dataOpacitySlider.value=dataOpacity; drawRadar(); });
+            dataOpacityInput.addEventListener('blur', e => { dataOpacity=parseFloat(e.target.value)||1; dataOpacity=Math.min(Math.max(dataOpacity,0.1),1); dataOpacityInput.value=dataOpacity; dataOpacitySlider.value=dataOpacity; drawRadar(); });
+            dataColorInput.addEventListener('input', e => { dataColor=e.target.value; drawRadar(); });
+            uploadBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', e => { if (e.target.files[0]) handleImageUpload(e.target.files[0]); fileInput.value = ''; });
+            heroNameInput.addEventListener('input', e => { heroNameShow.textContent = e.target.value || '未命名'; });
+            heroDescriptionInput.addEventListener('input', e => { heroDescriptionShow.textContent = e.target.value || ''; });
+            resetBtn.addEventListener('click', resetToDefault);
+            heroImageSquare.addEventListener('dragover', e => { e.preventDefault(); heroImageSquare.style.boxShadow='0 0 25px #f0b34b'; });
+            heroImageSquare.addEventListener('dragleave', e => { e.preventDefault(); heroImageSquare.style.boxShadow=''; });
+            heroImageSquare.addEventListener('drop', e => {
+                e.preventDefault(); heroImageSquare.style.boxShadow='';
+                const files = e.dataTransfer.files;
+                if (files.length>0) { if (files[0].type.startsWith('image/')) handleImageUpload(files[0]); else alert('请拖入图片文件。'); }
+            });
+            heroImageSquare.addEventListener('click', () => fileInput.click());
+
+            renderSliders(); updateThemeStyles(); updateBackgroundVisibility(); updateCanvasShadow();
+            heroNameShow.textContent = heroNameInput.value;
+            heroDescriptionShow.textContent = heroDescriptionInput.value;
+            currentSidesBadge.textContent = `${currentSides}边形`;
+        })();
+    </script>
+</body>
+</html>

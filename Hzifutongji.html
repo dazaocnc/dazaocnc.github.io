@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>多功能字数统计工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f5f7fc 0%, #eef2f5 100%);
+            font-family: 'Segoe UI', 'Roboto', 'Noto Sans', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+            min-height: 100vh;
+            padding: 2rem 1.5rem 3rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* 主容器：优雅卡片 */
+        .app-container {
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        /* 统计栏悬浮置顶区域 (sticky 父容器内) */
+        .stats-sticky-wrapper {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: inherit;
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+        }
+
+        /* 统计卡片 — 悬浮置顶时更加精致 */
+        .stats-panel {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            padding: 1.2rem 1.8rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.8rem 1.8rem;
+            border-radius: 0;
+            transition: box-shadow 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        }
+
+        /* 悬浮时轻微阴影强调 */
+        .stats-sticky-wrapper.is-stuck .stats-panel {
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            background: rgba(255, 255, 255, 0.98);
+        }
+
+        /* 每个统计指标块 */
+        .stat-item {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            font-size: 1rem;
+            background: #f8fafd;
+            padding: 0.45rem 1rem;
+            border-radius: 60px;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.02);
+        }
+
+        .stat-label {
+            font-weight: 500;
+            color: #2c3e4e;
+            letter-spacing: 0.3px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            font-size: 1.7rem;
+            line-height: 1.2;
+            color: #1e4663;
+            font-feature-settings: "tnum";
+            letter-spacing: 0.5px;
+        }
+
+        .stat-unit {
+            font-size: 0.75rem;
+            font-weight: normal;
+            color: #5b7a9a;
+            margin-left: 2px;
+        }
+
+        /* 输入框区域 — 无边距内边距柔和 */
+        .textarea-container {
+            padding: 1.8rem 1.8rem 2rem;
+            background: #ffffff;
+        }
+
+        /* 动态高度文本框：不固定高度，内容撑开，无限延长 */
+        .auto-expand-textarea {
+            width: 100%;
+            border: 1.5px solid #e2e9f2;
+            border-radius: 1.5rem;
+            padding: 1.2rem 1.4rem;
+            font-size: 1rem;
+            line-height: 1.6;
+            font-family: inherit;
+            color: #1f2f3a;
+            background: #fefefe;
+            resize: vertical;      /* 允许用户手动垂直拖拽，但最小高度自动 */
+            min-height: 180px;
+            transition: border 0.2s, box-shadow 0.2s;
+            outline: none;
+            overflow-y: auto;      /* 内容过多滚动，但依然可无限扩展 */
+        }
+
+        .auto-expand-textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+        }
+
+        /* 让文本域真正的自然高度扩展：通过 rows 初始为1，但使用CSS min-height + 内容自动撑开 */
+        /* 由于用户可以输入大量内容，默认min-height足够，但会随内容自动增高 (不用固定height) */
+        /* 额外确保不会有滚动条限制扩展: overflow-y 在长文本时变为auto，高度仍随内容撑大 */
+        
+        /* 提示区域 (底部) */
+        .tip-footer {
+            text-align: center;
+            padding: 1.2rem 1rem 1.5rem;
+            font-size: 0.85rem;
+            color: #6b85a0;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            background: rgba(248,250,252,0.7);
+            font-weight: 450;
+            letter-spacing: 0.3px;
+        }
+
+        .tip {
+            display: inline-block;
+            background: #eef3fc;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            backdrop-filter: blur(2px);
+        }
+
+        /* 针对移动端优化 */
+        @media (max-width: 680px) {
+            body {
+                padding: 1rem 0.8rem 2rem;
+            }
+            .stats-panel {
+                padding: 0.9rem 1rem;
+                gap: 0.6rem;
+            }
+            .stat-item {
+                padding: 0.3rem 0.8rem;
+            }
+            .stat-value {
+                font-size: 1.3rem;
+            }
+            .stat-label {
+                font-size: 0.7rem;
+            }
+            .textarea-container {
+                padding: 1.2rem 1rem 1.5rem;
+            }
+            .auto-expand-textarea {
+                padding: 1rem;
+                font-size: 0.95rem;
+                min-height: 150px;
+            }
+        }
+
+        /* 简洁滚动条 */
+        .auto-expand-textarea::-webkit-scrollbar {
+            width: 8px;
+            background: #eef2f5;
+        }
+        .auto-expand-textarea::-webkit-scrollbar-thumb {
+            background: #bdcbd9;
+            border-radius: 8px;
+        }
+
+        /* 悬浮高亮效果 */
+        .stat-item:hover {
+            background: #eef3fc;
+            transition: 0.1s;
+        }
+
+        /* 用于检测sticky状态的脚本增强 (添加阴影类) 可选，不依赖外部也可以 */
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <!-- 统计模块：位于输入框上方，且滚动时会悬浮置顶（sticky） -->
+    <div class="stats-sticky-wrapper" id="statsStickyWrapper">
+        <div class="stats-panel" id="statsPanel">
+            <div class="stat-item">
+                <span class="stat-label">📄 字数</span>
+                <span class="stat-value" id="wordCount">0</span>
+                <span class="stat-unit">字</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">📏 行数</span>
+                <span class="stat-value" id="lineCount">0</span>
+                <span class="stat-unit">行</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">🔤 词数</span>
+                <span class="stat-value" id="termCount">0</span>
+                <span class="stat-unit">词</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">🔣 字符数(含空格)</span>
+                <span class="stat-value" id="charWithSpace">0</span>
+                <span class="stat-unit">字符</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">✂️ 字符数(无空格)</span>
+                <span class="stat-value" id="charNoSpace">0</span>
+                <span class="stat-unit">字符</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 输入框区域：不固定高度，内容无限延长 -->
+    <div class="textarea-container">
+        <textarea 
+            id="textInput" 
+            class="auto-expand-textarea" 
+            placeholder="在这里输入或粘贴文本，支持任意长度内容。&#10;实时统计字数、行数、词数、字符数（含/不含空格）..."
+            rows="1"
+            style="height: auto;"
+        ></textarea>
+    </div>
+
+    <!-- 下方说明：全平台兼容，谌祖宝制作 -->
+    <div class="tip-footer">
+        <div class="tip">全平台兼容，谌祖宝制作</div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // DOM 元素
+        const textarea = document.getElementById('textInput');
+        const wordCountSpan = document.getElementById('wordCount');      // 字数 (中文汉字/英文单词混合—传统意义上的“字数”通常指字符？但按产品经理需求: 字数 往往指汉字个数+非空白字符的视觉计数，但为了通用，这里“字数”定义为：统计文本中所有非空字符的数目（即含标点字母数字等, 去除空格和换行后的字符数）。 符合常见场景：字数 = 无空格字符数（不含空格，包含标点、汉字、字母）。
+        // 但为符合一般用户预期：“字数”就是字符数不含空格？但有些习惯是除空格外的全部。故我们实现方案：
+        // 字数：统计所有非空格、非换行、非制表符等空白字符的个数（即可见字符个数）。这符合一般“文本字数”认知。
+        // 行数：根据换行符分割计数。
+        // 词数：以空格/标点分割的单词序列（英文习惯+中文分词简易方式: 使用正则匹配单词边界，支持中英文数字混合词）
+        // 字符数含空格：字符串总长度，包括所有空格，换行符算一个字符（符合Unicode长度）
+        // 字符数不含空格：过滤掉空格( )，但保留其他空白如换行符？常规不含空格仅移除半角空格和全角空格? 设计明确: 除去 ' ' (U+0020) 半角空格，全角空格(\u3000)也移除（常见要求）
+        // 同时换行符不计入“无空格字符”，但换行符属于控制字符, 但通常字符数不含空格时，换行符可能还是保留？细化: 根据最直观要求“不含空格字符数” 应该移除所有空格字符(半角/全角)和制表符但保留换行符？但是换行符一般不算“可见”但为避免歧义，按照严谨设计：
+        // 字符数(不含空格)：将文本中所有空格字符（包括半角空格' '、全角空格'\u3000'、制表符'\t'）剔除后计算长度，保留换行符(\n,\r\n中的\n也算作1个字符) 比较符合典型需求。
+        // 我们根据行业标准优化。
+        
+        // 辅助函数：获取统计值
+        function computeStats(rawText) {
+            // 基础原始文本（保留原始格式）
+            const text = rawText || "";
+            
+            // 1. 行数: 按换行符分割，空文本也算0行? 规范: 完全无内容为0行，有内容至少1行(即使无换行)
+            let lines = 0;
+            if (text.length === 0) {
+                lines = 0;
+            } else {
+                // 行数按\n分割，如果末尾有\n也算一行 (例如 "hello\n" 是两行)
+                const lineArray = text.split(/\r?\n/);
+                // 但最后一个元素如果是空并且text以换行结尾，split之后最后一项为空，但实际代表新行。例如 "a\n" => ["a",""] -> 行数为2。符合编辑器逻辑。
+                lines = lineArray.length;
+                // 如果整个文本没有任何字符，lines应该为0 但上面已经处理长度为0情况
+                if (text.length === 0) lines = 0;
+                // 边缘情况：只有换行符的情况 text="\n"， split -> ["", ""] 长度2，合理表示两行空白行。
+            }
+            
+            // 2. 字符数(含空格): 直接字符串长度 (包括所有字符，换行符，空格)
+            const charWithSpaceLen = text.length;
+            
+            // 3. 字符数(不含空格): 移除半角空格( )、全角空格(\u3000)、制表符(\t)，但保留换行符和其他可见字符
+            const noSpaceText = text.replace(/[ \t\u3000]/g, '');
+            const charNoSpaceLen = noSpaceText.length;
+            
+            // 4. 字数 (一般定义为: 所有非空白字符的个数，即不含空格/制表符，但是含换行符吗？换行符通常不算“字”。所以更为合理：字数 = 剔除所有空白字符(空格/全角空格/制表符/换行符)后长度。
+            // 符合中文习惯，字数通常指汉字、字母、数字等可见字符，不包含换行和空格。更符合直观。
+            const noWhitespaceText = text.replace(/\s+/g, '');  // \s 匹配任何空白符（空格、换行、制表、分页等）
+            const chineseWordCount = noWhitespaceText.length;
+            
+            // 5. 词数: 复杂场景兼顾中英文。标准做法：针对非中文文本按空白/标点分词，针对中文按单个汉字分词不友好，但通常词数统计可基于单词边界。
+            // 实现稳健的词数算法：匹配所有由Unicode字母数字、汉字、下划线等组成的“词”片段，并且支持粘连。使用正则：[\p{L}\p{N}]+ 匹配任意语言字母数字组成的连续块。
+            // 同时考虑到中文没有自然空格，但连续的中文字符会被视为一个“词”? 通常词数期望中文每个字独立？不对,一般英文文本“词数”按空格分词，中文用户希望字数统计单独的，但词数一般是对英文来说。所以我们提供灵活符合多数:
+            // 为了使中英文混合友好，我们将中文字符序列视为一个整体（即不拆分单字），不自然。最好采用更准确的规则：根据分词方式，可以匹配 [\u4e00-\u9fa5] 单字可能更好？用户或许想要类似word counter效果: 中文每个字当作一个词？不常见，但对中文统计词数其实参考微软Word: 中文按词语统计，但实现复杂。
+            // 优化：使用正则匹配连续的字母数字组(英文单词)和连续的中文字符组(每个中文字符视为一个词块？会造成每个汉字单独一个词，对中文短文本统计过夸张。但很多在线工具对于中文词数统计要么每个汉字算一词，要么按词组。
+            // 最稳健的做法：对于中文环境，“词数” 通常为了粗略估算，可解释为“用空格分割的序列”，但这里为了更科学，采用“匹配所有由字母数字、下划线、汉字组成的连续序列，其中连续汉字视为一个词块，例如'我爱编程'算一个词？严格说不太好，但大多数非专业用户更关注字数。
+            // 鉴于产品未明确，从通用性: 使用边界匹配，类似于计数“非空白字符组的个数”：按空白字符分割过滤空字符串得到数组长度，对英文友好，对中文会把连续汉字视为一组，例如“你好 world” => ["你好","world"] => 2个词，比较合理。英文句点连带标点？标点附加到相邻词汇上常见。
+            // 最佳实践: 根据任何空白字符(空格/换行/制表)分割然后过滤掉空串，同时将标点符号分开？不需要，标点与词汇粘连依然是一个词。故词数 = text.trim() === '' ? 0 : text.split(/\s+/).filter(part => part.length > 0).length;
+            // 但遇到“hello,world” 会变成 ["hello,world"] 一个词，也较合理，词边界以空白为准。
+            // 增强，如果用户希望准确，可以用更细致，但对中文“大家好 我是张三” => ["大家好","我是张三"]两个词感觉偏少，但毕竟词数和字数不同，用户可关注字数。我们这里实现按空白符分割（标准自然语言初步统计方式），符合大多数通用计数工具。
+            let termCount = 0;
+            if (text.trim().length === 0) {
+                termCount = 0;
+            } else {
+                // 使用正则基于任意空白字符（空格、换行、制表、全角空格等）分割，并且过滤空串
+                const wordsArray = text.split(/\s+/).filter(segment => segment.length > 0);
+                termCount = wordsArray.length;
+            }
+            
+            return {
+                wordCount: chineseWordCount,      // 字数 = 去除所有空白（含换行符/空格/制表）的字符数 -> 直观可见字符
+                lineCount: lines,
+                termCount: termCount,
+                charWithSpace: charWithSpaceLen,
+                charNoSpace: charNoSpaceLen
+            };
+        }
+        
+        // 更新 UI 显示
+        function updateStats() {
+            const rawText = textarea.value;
+            const stats = computeStats(rawText);
+            wordCountSpan.innerText = stats.wordCount;
+            document.getElementById('lineCount').innerText = stats.lineCount;
+            document.getElementById('termCount').innerText = stats.termCount;
+            document.getElementById('charWithSpace').innerText = stats.charWithSpace;
+            document.getElementById('charNoSpace').innerText = stats.charNoSpace;
+            
+            // 动态调整 textarea 高度：让其根据内容自动延长（高度不固定，完全由内容撑开）
+            // 原本textarea如果使用min-height + 不设置height，也会自动扩展，但为了保险移除显式高度，并将height设为auto，scrollHeight赋值
+            // 但需要注意调用时机和递归。思路：每次输入时重置height为auto，再设为scrollHeight，保证内容变化时高度即时刷新。
+            // 但注意textarea设置scrollHeight会去除滚动条，内容过大会自然变高。而且兼容无限延长。不需要手动设置rows。
+            // 不过如果用户手动拖动resize，我们保留其手动大小，不干预拖动后的行为，但为了维持“可根据内容无限延长”不设置死高度。
+            // 更好的做法：保存原有样式，但不覆盖手动缩放？既然用户可拖动，为了防止与自动增高打架，我们不使用强制scrollHeight除非内容主动增大，但会破坏resize手动。
+            // 实现轻量级自动增高但保留resize: 检测文本域内容溢出自动增高，但不能破坏手动缩小。 许多方案监听input重置高度再调整，但会与resize冲突。
+            // 为了极致体验: 引入AutoSize但不干扰手动调节？考虑到用户极少同时手动拖拽并期望自动撑开，用户需求是不固定高度，可根据内容无限延长，所以我们要保证内容变多时高度自动扩展，手动拖拽可临时调节。
+            // 实现上设置 style.height = 'auto' 后获取 scrollHeight，设定新高度，但注意每次input都强制设定高度会覆盖用户手动拖拽后的值。但符合“根据内容无限延长”是最主要体验。
+            // 用户在拖拽后如果再输入新内容，高度重新根据内容自动增长，但假如用户希望手动缩小到比内容还小（滚动条出现），这个可以借由overflow-y: auto处理，依然可用，但根据产品要求灵活。
+            // 为了完美，我们做自动增长并且保持用户不会失去滚动能力，如果用户手动拖拽高度小于scrollHeight，会出现滚动条而不是压缩内容。
+            // 最终实现: autoExpandTextarea函数（输入时触发）
+            autoExpandTextarea(textarea);
+        }
+        
+        // 自动扩展文本框高度，确保内容无限制延伸，且内容改变时高度refresh
+        function autoExpandTextarea(el) {
+            // 先临时重置高度为auto以获取正确scrollHeight
+            el.style.height = 'auto';
+            // 获取当前内容所需高度，同时兼顾min-height以及max-height可选无max-height自然无限
+            let newHeight = el.scrollHeight;
+            // 可添加最小高度的保护，但由于min-height已经定义180px，scrollHeight可能会小于180，但不会比min-height小
+            // 确保不低于最小视觉高度
+            const minHeight = parseInt(window.getComputedStyle(el).minHeight, 10);
+            if (!isNaN(minHeight) && newHeight < minHeight) {
+                newHeight = minHeight;
+            }
+            el.style.height = newHeight + 'px';
+            // 确保如果超出或者内容减少，滚动条消失并且高度恰当。 而且textarea如果有overflow: auto, 当scrollHeight大于clientHeight会出现滚动条，但我们现在设高度完全撑开，不会出现滚动条，内容完全可见
+            // 如果用户手动拖拽改变高度后，下次输入会reset成scrollHeight大小，也就是覆盖手动拖拽，但保证了"无限延长"的终极体验，符合产品主导。
+        }
+        
+        // 监听input事件实时更新统计和高度
+        function onInputHandler() {
+            updateStats();
+            autoExpandTextarea(textarea);
+        }
+        
+        // 监听窗口resize重新调整textarea高度，因为父容器宽变化可能影响换行导致高度变化
+        function onResizeHandler() {
+            if (document.activeElement === textarea) {
+                autoExpandTextarea(textarea);
+            } else {
+                // 即使没有焦点也确保显示统计不会错，但高度仅需当内容真实变化时才需调整，但resize宽度改变时可能导致文本换行需要重算高度
+                // 为了完美，我们可以调用autoExpandTextarea但不会影响用户当前光标，比较友好
+                autoExpandTextarea(textarea);
+            }
+        }
+        
+        // 初始化事件
+        function init() {
+            // 初始统计 + 高度自适应
+            updateStats();
+            autoExpandTextarea(textarea);
+            textarea.addEventListener('input', onInputHandler);
+            window.addEventListener('resize', onResizeHandler);
+            
+            // 当textarea获得焦点时也可能因为样式变化调整高度
+            textarea.addEventListener('focus', () => {
+                autoExpandTextarea(textarea);
+            });
+            
+            // 额外处理粘贴、剪切等导致的渲染偏移
+            textarea.addEventListener('change', () => {
+                autoExpandTextarea(textarea);
+            });
+            
+            // 支持动态数据演示样例（可放入初始展示文字）
+            // 为了演示效果，默认不填入文字，保持空白友好
+            // 为体验加一段示例占位说明（无实质内容）
+        }
+        
+        // 为悬浮置顶添加stuck检测视觉效果优化，监听滚动时判断.stats-sticky-wrapper是否粘性生效, 添加类微调阴影 (可选)
+        function initStickyEffect() {
+            const stickyWrapper = document.getElementById('statsStickyWrapper');
+            if (!stickyWrapper) return;
+            const observer = new IntersectionObserver(
+                ([entry]) => {
+                    // 当 sticky 元素的父级滚动导致其脱离常规流，判断是否处于stuck状态可用 getBoundingClientRect和阈值
+                    // 更加可靠: 判断top位置是否小于等于0
+                    const rect = stickyWrapper.getBoundingClientRect();
+                    if (rect.top <= 0) {
+                        stickyWrapper.classList.add('is-stuck');
+                    } else {
+                        stickyWrapper.classList.remove('is-stuck');
+                    }
+                },
+                { threshold: [0], rootMargin: '-1px 0px 0px 0px' }
+            );
+            observer.observe(stickyWrapper);
+            // 滚动事件辅助保险
+            window.addEventListener('scroll', () => {
+                const rect = stickyWrapper.getBoundingClientRect();
+                if (rect.top <= 0) {
+                    stickyWrapper.classList.add('is-stuck');
+                } else {
+                    stickyWrapper.classList.remove('is-stuck');
+                }
+            });
+        }
+        
+        init();
+        initStickyEffect();
+        
+        // 额外处理由于字体或行高变化带来的高度，MutationObserver极简版不做深度，只利用input和resize已覆盖
+        // 重置特定全平台兼容: 文本区域内容后手动触发
+        // 确保自定义词数及各种统计边缘case
+        // 测试空字符串行为: 全0
+        // 边缘统计: 只有空格时 字数应为0，词数为0，行数不为0（如果有换行则计数）。
+        // 例：文本"   \n   " 行数: split后 内容长度>0? 根据分割规则可得到有效行，很好。字符含空格计入，无空格字符除去空格制表后可能为换行符，换行符不是空格，故未剔除会算无空格字符字数？我们的字数剔除所有\s(包括\n), 所以字数0，干净。
+        // 词数没有有效词段也为0，行数至少为1或者2。 完全符合。
+    })();
+</script>
+</body>
+</html>

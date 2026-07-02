@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>iP查询</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #eef2f7 0%, #cfdfeb 100%);
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+        }
+
+        .ip-card {
+            max-width: 1300px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 2rem;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.7);
+        }
+
+        .card-header {
+            background: linear-gradient(105deg, #0c2e42 0%, #1b557a 100%);
+            padding: 1.6rem 2rem;
+            color: white;
+        }
+
+        .card-header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            flex-wrap: wrap;
+        }
+
+        .card-header h1::before {
+            content: "🛸";
+            font-size: 1.9rem;
+        }
+
+        .sub {
+            font-size: 0.85rem;
+            opacity: 0.85;
+            margin-top: 0.4rem;
+            border-left: 3px solid #7fc9ff;
+            padding-left: 0.8rem;
+        }
+
+        .content {
+            padding: 1.8rem 2rem 1rem 2rem;
+        }
+
+        .status-box {
+            background: #f1f5f9;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 2.4rem;
+            height: 2.4rem;
+            border: 3px solid #bdd3e6;
+            border-top-color: #1e6f9f;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.1rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .info-item {
+            background: white;
+            border-radius: 1.2rem;
+            padding: 0.9rem 1.2rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0,0,0,0.03);
+            border: 1px solid #e2edf2;
+            transition: 0.1s;
+        }
+
+        .info-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: #2c698d;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .info-value {
+            font-size: 0.98rem;
+            font-weight: 500;
+            color: #0e2f42;
+            word-break: break-word;
+            line-height: 1.4;
+        }
+
+        .ip-dual {
+            background: linear-gradient(120deg, #f0f8ff, #ffffff);
+        }
+
+        .ip-dual .info-value {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.95rem;
+        }
+
+        .extra-bar {
+            background: #eef3fa;
+            border-radius: 1rem;
+            padding: 0.7rem 1.2rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+            gap: 12px;
+            margin-top: 0.2rem;
+        }
+
+        .refresh-btn {
+            background: #2c6e9e;
+            border: none;
+            color: white;
+            padding: 0.45rem 1.2rem;
+            border-radius: 60px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .refresh-btn:hover {
+            background: #194e6f;
+            transform: scale(0.97);
+        }
+
+        .tip-footer {
+            padding: 1rem 2rem 1.5rem 2rem;
+            border-top: 1px solid #e2edf0;
+            text-align: center;
+        }
+
+        .tip {
+            background: #eaf2f9;
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            border-radius: 60px;
+            color: #1f597b;
+            font-weight: 500;
+            box-shadow: inset 0 1px 0 white, 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        @media (max-width: 720px) {
+            .content {
+                padding: 1rem;
+            }
+            .card-header h1 {
+                font-size: 1.4rem;
+            }
+        }
+        hr {
+            margin: 8px 0;
+            border: none;
+            border-top: 1px solid #e0edf2;
+        }
+        .small-note {
+            font-size: 0.7rem;
+            color: #5a7e9a;
+            margin-top: 6px;
+        }
+        .error-text {
+            color: #c0392b;
+            background: #fce4e4;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="ip-card">
+    <div class="card-header">
+        <h1>🌐 IP档案 + 设备环境</h1>
+        <div class="sub">双栈IP（IPv4 + IPv6）· 精准地理信息 · 操作系统/浏览器/硬件</div>
+    </div>
+
+    <div class="content" id="appContent">
+        <div id="loadingArea" class="status-box">
+            <div class="loader"></div>
+            <p style="margin-top: 15px; color: #2b6a8c;">正在获取双栈IP地址与全球地理位置...</p>
+        </div>
+
+        <div id="dataArea" style="display: none;">
+            <div class="info-grid">
+                <div class="info-item ip-dual">
+                    <div class="info-label"><span>📡 IPv4 地址 (公网)</span></div>
+                    <div class="info-value" id="ipv4Address">-</div>
+                </div>
+                <div class="info-item ip-dual">
+                    <div class="info-label"><span>🌐 IPv6 地址 (公网)</span></div>
+                    <div class="info-value" id="ipv6Address">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><span>🗺️ 国家 / 地区</span></div>
+                    <div class="info-value" id="country">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><span>🏙️ 城市 / 区域</span></div>
+                    <div class="info-value" id="city">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><span>📍 经纬度坐标</span></div>
+                    <div class="info-value" id="location">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><span>🏢 互联网服务商 (ISP)</span></div>
+                    <div class="info-value" id="isp">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><span>🔧 组织机构 (ORG)</span></div>
+                    <div class="info-value" id="org">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><span>🕘 时区 / UTC偏移</span></div>
+                    <div class="info-value" id="timezone">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><span>✉️ 邮政编码</span></div>
+                    <div class="info-value" id="zip">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><span>🛡️ 代理/VPN检测</span></div>
+                    <div class="info-value" id="proxy">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><span>📱 移动网络类型</span></div>
+                    <div class="info-value" id="mobileType">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><span>⚠️ 威胁/爬虫情报</span></div>
+                    <div class="info-value" id="threat">-</div>
+                </div>
+            </div>
+
+            <div style="margin: 1rem 0 0.8rem 0;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                    <span style="background: #2c698d20; padding: 4px 12px; border-radius: 40px; font-size: 0.75rem; font-weight:600;">💻 本地客户端环境</span>
+                    <span style="font-size: 0.7rem; color:#436b84;">(通过浏览器获取)</span>
+                </div>
+                <div class="info-grid" style="margin-bottom: 0.5rem;">
+                    <div class="info-item">
+                        <div class="info-label"><span>🖥️ 操作系统</span></div>
+                        <div class="info-value" id="osDetail">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><span>🌐 浏览器名称/版本</span></div>
+                        <div class="info-value" id="browserDetail">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><span>📐 屏幕分辨率</span></div>
+                        <div class="info-value" id="screenRes">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><span>🗣️ 默认语言</span></div>
+                        <div class="info-value" id="language">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><span>🎮 GPU / 图形渲染器</span></div>
+                        <div class="info-value" id="gpuInfo">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><span>⏲️ 时区偏移 (客户端)</span></div>
+                        <div class="info-value" id="clientTimezone">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="extra-bar">
+                <span>🔍 IP地理数据: ip-api.com/ipwhois.io | 支持HTTPS | 全平台兼容</span>
+                <button class="refresh-btn" id="refreshDataBtn">🔄 刷新全部信息</button>
+            </div>
+            <div style="font-size: 0.7rem; margin-top: 10px; text-align: right; color: #4f7f9e;" id="extraNote">
+                ✅ 展示双栈IP (IPv4/IPv6) + 设备指纹 | 全平台兼容
+            </div>
+        </div>
+    </div>
+
+    <div class="tip-footer">
+        <div class="tip">全平台兼容，谌祖宝制作</div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const loadingDiv = document.getElementById('loadingArea');
+        const dataArea = document.getElementById('dataArea');
+
+        const ipv6El = document.getElementById('ipv6Address');
+        const ipv4El = document.getElementById('ipv4Address');
+        const countryEl = document.getElementById('country');
+        const cityEl = document.getElementById('city');
+        const locationEl = document.getElementById('location');
+        const ispEl = document.getElementById('isp');
+        const orgEl = document.getElementById('org');
+        const timezoneEl = document.getElementById('timezone');
+        const zipEl = document.getElementById('zip');
+        const proxyEl = document.getElementById('proxy');
+        const mobileTypeEl = document.getElementById('mobileType');
+        const threatEl = document.getElementById('threat');
+
+        const osDetailEl = document.getElementById('osDetail');
+        const browserDetailEl = document.getElementById('browserDetail');
+        const screenResEl = document.getElementById('screenRes');
+        const languageEl = document.getElementById('language');
+        const gpuInfoEl = document.getElementById('gpuInfo');
+        const clientTimezoneEl = document.getElementById('clientTimezone');
+
+        function showError(message, detail = '') {
+            if (loadingDiv) loadingDiv.style.display = 'block';
+            if (dataArea) dataArea.style.display = 'none';
+            loadingDiv.innerHTML = `
+                <div style="background:#ffe6e5; border-radius:1.5rem; padding:1.5rem; color:#b91c1c;">
+                    <div style="font-size:2rem;">⚠️</div>
+                    <p style="margin-top:8px; font-weight:600;">${message}</p>
+                    ${detail ? `<p style="font-size:0.85rem;">${detail}</p>` : ''}
+                    <button class="refresh-btn" style="margin-top:14px; background:#457b9d;" onclick="location.reload()">重新加载</button>
+                </div>
+            `;
+        }
+
+        function collectClientEnvironment() {
+            const ua = navigator.userAgent;
+            let os = "Unknown";
+            if (ua.indexOf("Windows NT 10.0") !== -1) os = "Windows 11 (64位)";
+            else if (ua.indexOf("Windows NT 6.3") !== -1) os = "Windows 8.1";
+            else if (ua.indexOf("Windows NT 6.2") !== -1) os = "Windows 8";
+            else if (ua.indexOf("Windows NT 6.1") !== -1) os = "Windows 7";
+            else if (ua.indexOf("Mac OS X") !== -1) os = "macOS";
+            else if (ua.indexOf("Linux") !== -1) {
+                if (ua.indexOf("Android") !== -1) os = "Android";
+                else os = "Linux";
+            }
+            else if (ua.indexOf("iPhone") !== -1 || ua.indexOf("iPad") !== -1) os = "iOS";
+            osDetailEl.innerText = os;
+            
+            let browser = "未知";
+            let version = "";
+            if (ua.indexOf("Edg") !== -1) {
+                browser = "Microsoft Edge";
+                const match = ua.match(/Edg\/(\d+\.\d+\.\d+\.\d+)/);
+                version = match ? match[1] : "";
+            } else if (ua.indexOf("Chrome") !== -1 && ua.indexOf("Edg") === -1) {
+                browser = "Chrome";
+                const match = ua.match(/Chrome\/(\d+\.\d+\.\d+\.\d+)/);
+                version = match ? match[1] : "";
+            } else if (ua.indexOf("Firefox") !== -1) {
+                browser = "Firefox";
+                const match = ua.match(/Firefox\/(\d+\.\d+)/);
+                version = match ? match[1] : "";
+            } else if (ua.indexOf("Safari") !== -1 && ua.indexOf("Chrome") === -1) {
+                browser = "Safari";
+                const match = ua.match(/Version\/(\d+\.\d+)/);
+                version = match ? match[1] : "";
+            }
+            browserDetailEl.innerText = version ? `${browser} ${version}` : browser;
+            screenResEl.innerText = `${window.screen.width} x ${window.screen.height}`;
+            languageEl.innerText = navigator.language || "zh-CN";
+            
+            let gpu = "暂未获取到 GPU 信息";
+            const canvas = document.createElement("canvas");
+            const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+            if (gl) {
+                const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+                if (debugInfo) {
+                    const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                    gpu = renderer ? `${renderer}` : "WebGL 渲染器";
+                }
+            }
+            gpuInfoEl.innerText = gpu;
+            
+            const tzOffset = -new Date().getTimezoneOffset();
+            const offsetHours = Math.floor(Math.abs(tzOffset) / 60);
+            const offsetMins = Math.abs(tzOffset) % 60;
+            const sign = tzOffset >= 0 ? "+" : "-";
+            clientTimezoneEl.innerText = `UTC${sign}${String(offsetHours).padStart(2,'0')}:${String(offsetMins).padStart(2,'0')}`;
+        }
+
+        // 获取IPv4地址 - 使用 HTTPS 接口
+        async function fetchIPv4() {
+            // 备用接口列表，都支持 HTTPS
+            const apis = [
+                'https://api.ipify.org?format=json',
+                'https://api.my-ip.io/ip.json',
+                'https://ipv4.jsonip.com'
+            ];
+            
+            for (const api of apis) {
+                try {
+                    const res = await fetch(api, { cache: 'no-store' });
+                    if (!res.ok) continue;
+                    const data = await res.json();
+                    const ip = data.ip || data.ipv4;
+                    if (ip && /^\d+\.\d+\.\d+\.\d+$/.test(ip)) {
+                        return ip;
+                    }
+                } catch (e) {
+                    console.warn(`IPv4接口 ${api} 失败`, e);
+                }
+            }
+            return null;
+        }
+        
+        // 获取IPv6地址
+        async function fetchIPv6() {
+            try {
+                const res = await fetch('https://api6.ipify.org?format=json', { cache: 'no-store' });
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                return data.ip || null;
+            } catch (e) {
+                console.warn("IPv6获取失败", e);
+                return null;
+            }
+        }
+
+        // 获取地理信息 - 使用多个备用接口
+        async function fetchGeoInfo() {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            
+            // 备用地理信息接口（都支持 HTTPS 和 CORS）
+            const geoApis = [
+                'https://ipwhois.app/json/',
+                'https://ipapi.co/json/',
+                'https://freeipapi.com/api/json/'
+            ];
+            
+            for (const api of geoApis) {
+                try {
+                    const response = await fetch(api, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    if (!response.ok) continue;
+                    const data = await response.json();
+                    
+                    // 统一不同接口的字段格式
+                    let normalized = null;
+                    if (api.includes('ipwhois')) {
+                        if (data.success === false) continue;
+                        normalized = {
+                            country: data.country,
+                            country_code: data.country_code,
+                            city: data.city,
+                            region: data.region,
+                            latitude: data.latitude,
+                            longitude: data.longitude,
+                            isp: data.isp,
+                            org: data.org,
+                            timezone: data.timezone,
+                            postal: data.postal,
+                            security: data.security || {}
+                        };
+                    } else if (api.includes('ipapi.co')) {
+                        normalized = {
+                            country: data.country_name,
+                            country_code: data.country_code,
+                            city: data.city,
+                            region: data.region,
+                            latitude: data.latitude,
+                            longitude: data.longitude,
+                            isp: data.org,
+                            org: data.org,
+                            timezone: data.timezone,
+                            postal: data.postal,
+                            security: { is_proxy: data.proxy, is_vpn: false, is_crawler: false }
+                        };
+                    } else if (api.includes('freeipapi')) {
+                        normalized = {
+                            country: data.countryName,
+                            country_code: data.countryCode,
+                            city: data.cityName,
+                            region: data.regionName,
+                            latitude: data.latitude,
+                            longitude: data.longitude,
+                            isp: data.isp,
+                            org: data.isp,
+                            timezone: data.timeZone,
+                            postal: data.zipCode,
+                            security: {}
+                        };
+                    }
+                    
+                    if (normalized && normalized.country) {
+                        return normalized;
+                    }
+                } catch (err) {
+                    console.warn(`GeoIP接口 ${api} 失败`, err);
+                    continue;
+                }
+            }
+            clearTimeout(timeoutId);
+            throw new Error('所有地理信息服务均不可用');
+        }
+
+        function renderGeoData(data) {
+            countryEl.innerText = `${data.country || '未知'} (${data.country_code || ''})`;
+            const cityPart = data.city || '';
+            const regionPart = data.region || '';
+            let cityDisplay = cityPart;
+            if (cityPart && regionPart) cityDisplay = `${cityPart}, ${regionPart}`;
+            else if (!cityPart && regionPart) cityDisplay = regionPart;
+            cityEl.innerText = cityDisplay || '未知';
+            
+            const lat = data.latitude;
+            const lng = data.longitude;
+            if (lat && lng) locationEl.innerText = `${parseFloat(lat).toFixed(4)} , ${parseFloat(lng).toFixed(4)}`;
+            else locationEl.innerText = '未获取坐标';
+            
+            ispEl.innerText = data.isp || '无ISP信息';
+            orgEl.innerText = data.org || '未提供';
+            timezoneEl.innerText = data.timezone || '未知';
+            zipEl.innerText = data.postal || '无';
+            
+            const sec = data.security || {};
+            let proxyText = "✅ 未检测到代理";
+            if (sec.is_proxy) proxyText = "⚠️ 检测到代理/Proxy";
+            else if (sec.is_vpn) proxyText = "⚠️ VPN隧道";
+            else if (sec.is_tor) proxyText = "🌐 Tor节点";
+            proxyEl.innerText = proxyText;
+            mobileTypeEl.innerText = data.mobile === true ? "📱 移动网络" : "🖧 宽带/固定网络";
+            
+            let threatParts = [];
+            if (sec.is_crawler) threatParts.push("爬虫");
+            if (sec.is_abuser) threatParts.push("滥用标记");
+            if (threatParts.length) threatEl.innerText = `⚠️ ${threatParts.join("·")}`;
+            else threatEl.innerText = "✅ 正常IP";
+        }
+
+        async function loadAllInfo() {
+            loadingDiv.style.display = 'block';
+            dataArea.style.display = 'none';
+            loadingDiv.innerHTML = `<div class="loader"></div><p style="margin-top: 15px; color:#2b6a8c;">正在获取双栈IP地址及全球地理位置...</p>`;
+            
+            collectClientEnvironment();
+            
+            const [ipv4, ipv6] = await Promise.all([fetchIPv4(), fetchIPv6()]);
+            ipv4El.innerText = ipv4 || "未检测到IPv4地址";
+            ipv6El.innerText = ipv6 || "未检测到IPv6地址";
+            
+            let geoData = null;
+            let geoError = false;
+            try {
+                geoData = await fetchGeoInfo();
+            } catch (err) {
+                console.error("GeoIP error", err);
+                geoError = true;
+            }
+            
+            if (geoError || !geoData) {
+                showError("地理位置服务暂时不可用", "但IPv4/IPv6及本地环境已显示。可刷新重试。");
+                return;
+            }
+            
+            renderGeoData(geoData);
+            loadingDiv.style.display = 'none';
+            dataArea.style.display = 'block';
+        }
+        
+        function bindRefresh() {
+            const btn = document.getElementById('refreshDataBtn');
+            if (btn) {
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                newBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    loadAllInfo();
+                });
+            }
+        }
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAllInfo().finally(() => bindRefresh());
+        });
+    })();
+</script>
+</body>
+</html>
