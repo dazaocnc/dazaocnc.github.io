@@ -349,48 +349,12 @@
         <div class="category-title" style="margin-top: 10px;">开发成交</div>
         <div class="grid">
 
-            <a class="item" href="https://www.baidu.com/" target="_blank">
-                <img src="icons/百度.svg" alt="百度">
-                <div class="name">百度</div>
-                <div class="tooltip">百度搜索，全球最大的中文搜索引擎，提供网页、图片、视频等搜索服务。</div>
-            </a>
+
             <a class="item" href="https://google.com" target="_blank">
                 <img src="icons/Google.svg" alt="">
                 <div class="name">Google</div>
                 <div class="tooltip">Google 全球最大的搜索引擎，提供网页、图片、地图、学术等全方位搜索</div>
             </a>
-            <a class="item" href="https://www.google.com/maps/" target="_blank">
-                <img src="icons/GoogleMaps.svg" alt="">
-                <div class="name">Google Maps</div>
-                <div class="tooltip">搜索目标国家城市 + 行业批发商，抓取门店、经销商官网、联系方式，适合线下实体批发商开发。</div>
-            </a>
-            <a class="item" href="https://translate.google.com/" target="_blank">
-                <img src="icons/GoogleTranslate.svg" alt="">
-                <div class="name">谷歌翻译</div>
-                <div class="tooltip">Google Translate工具，全球最精准的AI翻译服务，支持多语种高质量翻译</div>
-            </a>
-            <a class="item" href="https://gemini.google.com/" target="_blank">
-                <img src="icons/GoogleGemini.svg" alt="">
-                <div class="name">Gemini</div>
-                <div class="tooltip">Google 新一代多模态AI模型，支持文本、图像、音频、视频等多种理解能力</div>
-            </a>
-            <a class="item" href="https://chat.deepseek.com/" target="_blank">
-                <img src="icons/DeepSeek.svg" alt="">
-                <div class="name">DeepSeek</div>
-                <div class="tooltip">深度求索大模型，以高性价比和强大推理能力著称，支持长上下文处理</div>
-            </a>
-            <a class="item" href="http://www.chat.openai.com/" target="_blank">
-                <img src="icons/ChatGPT.svg" alt="">
-                <div class="name">ChatGPT</div>
-                <div class="tooltip">OpenAI ChatGPT，全球最知名的AI对话模型，支持文本生成、编程、分析等</div>
-            </a>
-            <a class="item" href="https://www.doubao.com/chat/" target="_blank">
-                <img src="icons/豆包.png" alt="">
-                <div class="name">豆包</div>
-                <div class="tooltip">字节跳动推出的AI对话助手，支持多轮对话、内容创作和知识问答</div>
-            </a>
-
-
             <a class="item" href="https://sourcing.alibaba.com/" target="_blank">
                 <img src="icons/RFQ市场.svg" alt="">
                 <div class="name">国际站RFQ</div>
@@ -427,11 +391,6 @@
                 <div class="tooltip">17TRACK国际包裹查询工具，支持全球多家物流公司的包裹追踪</div>
             </a>
 
-            <a class="item" href="https://www.timeanddate.com/" target="_blank">
-                <img src="icons/timeanddate.svg" alt="">
-                <div class="name">Timeanddate</div>
-                <div class="tooltip">世界时间与日期查询工具，提供全球时区转换、日历和天文信息</div>
-            </a>
         </div>
 
         <!-- 客情维护 -->
@@ -514,6 +473,22 @@
                 </div>
                 <div class="tooltip">Google 全球最大的搜索引擎，提供网页、图片、地图、学术等全方位搜索</div>
                 <div class="popup-menu" id="googleMenu" role="menu"></div>
+            </div>
+
+            <!-- Ai合集卡片（弹出菜单） -->
+            <div class="item popup-card" id="aihejiCard"
+                 role="button"
+                 tabindex="0"
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-label="Ai合集">
+                <!-- 内容区：视觉展示，事件穿透 -->
+                <div class="card-content">
+                    <img src="icons/ChatGPT.svg" alt="Google">
+                    <div class="name">Ai合集</div>
+                </div>
+                <div class="tooltip">各类顶尖AI和智能体赋能，提升效率。</div>
+                <div class="popup-menu" id="aihejiMenu" role="menu"></div>
             </div>
 
             <!-- 公司店铺卡片（弹出菜单） -->
@@ -662,20 +637,39 @@ createPopupMenu('googleCard', 'googleMenu', 'Google 全家桶', [
             { name: '搜索', url: 'https://www.google.com/webhp?hl=zh', icon: 'icons/Google.svg' },
             { name: 'Gemini', url: 'https://gemini.google.com/', icon: 'icons/GoogleGemini.svg' },
             { name: 'Gmail', url: 'https://mail.google.com/', icon: 'icons/GoogleGmail.svg' },
-            { name: '翻译', url: 'https://translate.google.com/', icon: 'icons/GoogleTranslate.svg' },
-            { name: '地图', url: 'https://www.google.com/maps/', icon: 'icons/GoogleMaps.svg' },
+            { name: 'Translate', url: 'https://translate.google.com/', icon: 'icons/GoogleTranslate.svg' },
+            { name: 'Maps', url: 'https://www.google.com/maps/', icon: 'icons/GoogleMaps.svg' },
             { name: 'YouTube', url: 'https://www.youtube.com/', icon: 'icons/GoogleYouTube.svg' },
-            { name: '云盘', url: 'https://drive.google.com/', icon: 'icons/GoogleDrive.svg' },
-            { name: '指数', url: 'https://trends.google.com/home', icon: 'icons/GoogleTrends.svg' },
-            { name: '日历', url: 'https://calendar.google.com/', icon: 'icons/GoogleCalendar.svg' },
+            { name: 'Drive', url: 'https://drive.google.com/', icon: 'icons/GoogleDrive.svg' },
+            { name: 'Trends', url: 'https://trends.google.com/home', icon: 'icons/GoogleTrends.svg' },
+            { name: 'Calendar', url: 'https://calendar.google.com/', icon: 'icons/GoogleCalendar.svg' },
             { name: 'Meet', url: 'https://meet.google.com/', icon: 'icons/GoogleMeet.svg' },
-            { name: '验证器', url: 'https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2', icon: 'icons/GoogleAuthenticator.svg' },
-            { name: '新闻', url: 'https://news.google.com/', icon: 'icons/GoogleNews.svg' },
+            { name: 'Authenticator', url: 'https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2', icon: 'icons/GoogleAuthenticator.svg' },
+            { name: 'News', url: 'https://news.google.com/', icon: 'icons/GoogleNews.svg' },
             { name: 'AI Studio', url: 'https://aistudio.google.com/', icon: 'icons/GoogleAIStudio.svg' },
-            { name: '广告', url: 'https://ads.google.com/', icon: 'icons/GoogleAds.svg' },
-            { name: '地球', url: 'https://earth.google.com/web/', icon: 'icons/GoogleEarth.svg' },
-            { name: '浏览器', url: 'https://www.google.cn/chrome/index.html', icon: 'icons/GoogleChrome.svg' },
+            { name: 'Ads', url: 'https://ads.google.com/', icon: 'icons/GoogleAds.svg' },
+            { name: 'Earth', url: 'https://earth.google.com/web/', icon: 'icons/GoogleEarth.svg' },
+            { name: 'Chrome', url: 'https://www.google.cn/chrome/index.html', icon: 'icons/GoogleChrome.svg' },
         ]);
+
+createPopupMenu('aihejiCard', 'aihejiMenu', 'Ai合集', [
+{ name: 'Gemini', url: 'https://gemini.google.com/', icon: 'icons/GoogleGemini.svg' },
+{ name: 'Google AI Studio', url: 'https://aistudio.google.com/', icon: 'icons/GoogleAIStudio.svg' },
+{ name: '豆包', url: 'https://www.doubao.com/chat/', icon: 'icons/豆包.png' },
+{ name: 'DeepSeek', url: 'https://chat.deepseek.com/', icon: 'icons/DeepSeek.svg' },
+{ name: '元宝', url: 'https://yuanbao.tencent.com/chat/', icon: 'icons/元宝.svg' },
+{ name: 'Copilot', url: 'https://copilot.microsoft.com/', icon: 'icons/Copilot.svg' },
+{ name: '文心', url: 'https://yiyan.baidu.com/', icon: 'icons/百度文心.svg' },
+{ name: '千问', url: 'https://www.qianwen.com/', icon: 'icons/千问.svg' },
+{ name: 'ChatGPT', url: 'http://www.chat.openai.com/', icon: 'icons/ChatGPT.svg' },
+{ name: 'Suno.cn', url: 'https://www.suno.cn/home/#/create', icon: 'icons/Sunocn.svg' },
+{ name: 'Suno.com', url: 'https://www.suno.cn/home/#/create', icon: 'icons/Sunocom.svg' },
+{ name: '即梦', url: 'https://jimeng.jianying.com/', icon: 'icons/即梦.svg' },
+{ name: 'n8n', url: 'https://n8n.srv1692805.hstgr.cloud/home/workflows', icon: 'icons/n8n.svg' },
+{ name: 'WorkBuddy', url: 'https://copilot.tencent.com/work/', icon: 'icons/WorkBuddy.png' },
+{ name: 'Coze', url: 'https://www.coze.cn/overview', icon: 'icons/扣子.png' },
+{ name: 'AccioWork', url: 'https://www.accio.com/invite-work?sId=TOzyLbBwDdC2eBIaxGc3rw%3D%3D&ic=IC418070373362&tenant=accio&src=p_referral_IC418070373362&return_url=https%3A%2F%2Fwww.accio.com%2Fwork%2F', icon: 'icons/阿里AccioWork.svg' },
+]);
 
 createPopupMenu('dazaoCard', 'dazaoMenu', '公司店铺', [
     { name: 'DAZAO', url: 'https://jyhcn.en.alibaba.com/', icon: 'icons/阿里国际站.svg' },
@@ -689,6 +683,9 @@ createPopupMenu('dazaoCard', 'dazaoMenu', '公司店铺', [
 ]);
 
 createPopupMenu('gongjuCard', 'gongjuMenu', '在线小工具', [
+    { name: '全球节假日', url: 'https://www.timeanddate.com/', icon: 'icons/timeanddate.svg' },
+    { name: '手机伪装度', url: 'https://whoer.net/zh', icon: 'icons/whoer.png' },
+    { name: '全球Ping', url: 'https://ping.chinaz.com/', icon: 'icons/站长之家.svg' },
     { name: '字符统计', url: 'Hzifutongji.html', icon: 'icons/Hzifutongji.svg' },
     { name: '大小写转换', url: 'Hdaxiaoxie.html', icon: 'icons/Hdaxiaoxie.svg' },
     { name: '花字母转换', url: 'Hhuazimu.html', icon: 'icons/Hhuazimu.svg' },
@@ -696,8 +693,6 @@ createPopupMenu('gongjuCard', 'gongjuMenu', '在线小工具', [
     { name: '繁体字转换', url: 'Hfantizi.html', icon: 'icons/Hfantizi.svg' },
     { name: '查询ip信息', url: 'Hip.html', icon: 'icons/Hip.svg' },
     { name: '随机抽奖', url: 'Hchoujiang.html', icon: 'icons/Hchoujiang.svg' },
-    { name: 'Whoer伪装度', url: 'https://whoer.net/zh', icon: 'icons/whoer.png' },
-    { name: '全球Ping', url: 'https://ping.chinaz.com/', icon: 'icons/站长之家.svg' },
 ]);
     </script>
 </body>
