@@ -2,11 +2,20 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>起始页</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>起始页 · 波浪特效</title>
   <link rel="icon" href="icons/Favicon32px.ico" type="image/x-icon">
   <link rel="shortcut icon" href="icons/Favicon32px.ico">
   <link rel="apple-touch-icon" href="icons/Favicon32px.ico">
+
+  <!-- 引入外部依赖：GSAP 动画库 和 RxJS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.3/TweenLite.min.js">
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.3/easing/EasePack.min.js">
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.6/Rx.min.js">
+  </script>
+
   <style>
     * {
       margin: 0;
@@ -14,6 +23,35 @@
       box-sizing: border-box;
     }
 
+    /* ============================================================
+       鼠标交互层 —— 置顶（覆盖全屏，但指针事件穿透）
+       ============================================================ */
+    #mouse-layer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 9999;
+      /* 置于最上层 */
+      pointer-events: none;
+      /* 🔑 关键：让鼠标事件穿透，不干扰导航点击 */
+      overflow: hidden;
+      background: transparent;
+      /* 完全透明背景，仅显示波浪线条 */
+    }
+
+    #mouse-layer svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      /* SVG 本身也不拦截事件 */
+    }
+
+    /* ============================================================
+       导航页面样式（原有样式，微调确保不被遮挡）
+       ============================================================ */
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #f5f7fa;
@@ -21,12 +59,17 @@
       display: flex;
       justify-content: center;
       padding: 40px 20px;
+      position: relative;
     }
 
+    /* 导航容器增加相对定位，确保在 mouse-layer 下面 */
     .container {
       width: 100%;
       max-width: 1200px;
       min-width: 800px;
+      position: relative;
+      z-index: 1;
+      /* 低于 mouse-layer 的 9999 */
     }
 
     .category-title {
@@ -103,7 +146,7 @@
       font-size: 13px;
       font-weight: 400;
       line-height: 1.6;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
       transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
       z-index: 99999;
       pointer-events: none;
@@ -180,383 +223,680 @@
   </style>
 </head>
 <body>
-<div class="container">
-  <h2 class="main-title">常用起始页</h2>
 
-  <!-- ===== 检索 & 信息 ===== -->
-  <div class="category-title" style="margin-top: 10px;">检索 & 信息</div>
-  <div class="grid">
-    <a class="item" href="https://www.baidu.com" target="_blank">
-      <img src="icons/百度.svg" alt="">
-      <div class="name">百度</div>
-      <div class="tooltip">百度搜索，全球最大的中文搜索引擎，提供网页、图片、视频等搜索服务</div>
-    </a>
-    <a class="item" href="https://google.com" target="_blank">
-      <img src="icons/Google.svg" alt="">
-      <div class="name">Google</div>
-      <div class="tooltip">Google 全球最大的搜索引擎，提供网页、图片、地图、学术等全方位搜索</div>
-    </a>
-    <a class="item" href="https://mail.qq.com" target="_blank">
-      <img src="icons/QQ邮箱.svg" alt="">
-      <div class="name">QQ邮箱</div>
-      <div class="tooltip">腾讯QQ邮箱，支持超大附件、微信提醒、邮件分类等便捷功能</div>
-    </a>
-    <a class="item" href="https://mail.google.com" target="_blank">
-      <img src="icons/GoogleGmail.svg" alt="">
-      <div class="name">Gmail</div>
-      <div class="tooltip">Google 邮箱服务，提供15GB免费存储空间，智能分类和强大反垃圾功能</div>
-    </a>
-    <a class="item" href="https://outlook.live.com/mail/0/" target="_blank">
-      <img src="icons/Outlook.svg" alt="">
-      <div class="name">Outlook</div>
-      <div class="tooltip">Microsoft Outlook 邮箱，集成日历、联系人和任务管理，支持Office在线协作</div>
-    </a>
-    <a class="item" href="https://github.com/" target="_blank">
-      <img src="icons/GitHub.svg" alt="">
-      <div class="name">GitHub</div>
-      <div class="tooltip">全球最大的代码托管平台，支持Git版本控制，开源社区和协作开发</div>
-    </a>
-    <a class="item" href="https://zh.wikipedia.org/" target="_blank">
-      <img src="icons/Wikipedi.svg" alt="">
-      <div class="name">Wikipedi</div>
-      <div class="tooltip">维基百科，自由开放的百科全书，由全球志愿者共同编辑和维护</div>
-    </a>
-    <a class="item" href="https://www.douyin.com/jingxuan" target="_blank">
-      <img src="icons/抖音.svg" alt="">
-      <div class="name">抖音</div>
-      <div class="tooltip">抖音精选，国内最受欢迎的短视频平台，涵盖生活、娱乐、知识等多元内容</div>
-    </a>
+  <!-- ============================================================
+  鼠标交互层 —— 置顶，完全透明，指针穿透
+  ============================================================ -->
+  <div id="mouse-layer">
+    <svg id="stage" width="200" height="200" xmlns="http://www.w3.org/2000/svg"></svg>
   </div>
 
-  <!-- ===== AIGC & Agent ===== -->
-  <div class="category-title">AIGC & Agent</div>
-  <div class="grid">
-    <a class="item" href="https://gemini.google.com/" target="_blank">
-      <img src="icons/GoogleGemini.svg" alt="">
-      <div class="name">Gemini</div>
-      <div class="tooltip">Google 新一代多模态AI模型，支持文本、图像、音频、视频等多种理解能力</div>
-    </a>
-    <a class="item" href="https://aistudio.google.com/" target="_blank">
-      <img src="icons/GoogleAIStudio.svg" alt="">
-      <div class="name">Google AI Studio</div>
-      <div class="tooltip">Google AI 开发平台，提供Gemini API调试、提示工程和模型调优工具</div>
-    </a>
-    <a class="item" href="https://www.doubao.com/chat/" target="_blank">
-      <img src="icons/豆包.png" alt="">
-      <div class="name">豆包</div>
-      <div class="tooltip">字节跳动推出的AI对话助手，支持多轮对话、内容创作和知识问答</div>
-    </a>
-    <a class="item" href="https://chat.deepseek.com/" target="_blank">
-      <img src="icons/DeepSeek.svg" alt="">
-      <div class="name">DeepSeek</div>
-      <div class="tooltip">深度求索大模型，以高性价比和强大推理能力著称，支持长上下文处理</div>
-    </a>
-    <a class="item" href="https://yuanbao.tencent.com/chat/" target="_blank">
-      <img src="icons/元宝.svg" alt="">
-      <div class="name">元宝</div>
-      <div class="tooltip">腾讯元宝AI助手，集成腾讯生态能力，支持文档解析、智能写作等功能</div>
-    </a>
-    <a class="item" href="https://copilot.microsoft.com/" target="_blank">
-      <img src="icons/Copilot.svg" alt="">
-      <div class="name">Copilot</div>
-      <div class="tooltip">Microsoft Copilot，基于GPT-4的AI助手，深度集成Office和Windows系统</div>
-    </a>
-    <a class="item" href="https://yiyan.baidu.com/" target="_blank">
-      <img src="icons/百度文心.svg" alt="">
-      <div class="name">文心</div>
-      <div class="tooltip">百度文心一言，基于文心大模型的AI对话产品，支持多轮交互和创意生成</div>
-    </a>
-    <a class="item" href="https://www.qianwen.com/" target="_blank">
-      <img src="icons/千问.svg" alt="">
-      <div class="name">千问</div>
-      <div class="tooltip">阿里通义千问，阿里云推出的通用AI助手，覆盖问答、创作、编程等场景</div>
-    </a>
-    <a class="item" href="http://www.chat.openai.com/" target="_blank">
-      <img src="icons/ChatGPT.svg" alt="">
-      <div class="name">ChatGPT</div>
-      <div class="tooltip">OpenAI ChatGPT，全球最知名的AI对话模型，支持文本生成、编程、分析等</div>
-    </a>
-    <a class="item" href="https://www.suno.cn/home/#/create" target="_blank">
-      <img src="icons/Sunocn.svg" alt="">
-      <div class="name">Suno.cn</div>
-      <div class="tooltip">Suno AI音乐创作平台国内版，输入文字描述即可生成完整的原创音乐</div>
-    </a>
-    <a class="item" href="https://www.suno.cn/home/#/create" target="_blank">
-      <img src="icons/Sunocom.svg" alt="">
-      <div class="name">Suno.com</div>
-      <div class="tooltip">Suno AI音乐创作国际版，支持多种音乐风格和语言，快速生成高质量歌曲</div>
-    </a>
-    <a class="item" href="https://jimeng.jianying.com/" target="_blank">
-      <img src="icons/即梦.svg" alt="">
-      <div class="name">即梦</div>
-      <div class="tooltip">即梦AI绘画与视频创作平台，支持文生图、图生视频等AIGC内容生成</div>
-    </a>
-    <a class="item" href="https://n8n.srv1692805.hstgr.cloud/home/workflows" target="_blank">
-      <img src="icons/n8n.svg" alt="">
-      <div class="name">n8n</div>
-      <div class="tooltip">n8n工作流自动化平台，支持连接数百种应用和服务，构建自动化业务流程</div>
-    </a>
-    <a class="item" href="https://copilot.tencent.com/work/" target="_blank">
-      <img src="icons/WorkBuddy.png" alt="">
-      <div class="name">WorkBuddy</div>
-      <div class="tooltip">腾讯Copilot工作助手，集成AI能力的办公辅助工具，提升工作效率</div>
-    </a>
-    <a class="item" href="https://www.coze.cn/overview" target="_blank">
-      <img src="icons/扣子.png" alt="">
-      <div class="name">Coze</div>
-      <div class="tooltip">扣子AI Bot开发平台，无需编码即可创建和部署智能对话机器人</div>
-    </a>
-    <a class="item" href="https://www.accio.com/invite-work?sId=TOzyLbBwDdC2eBIaxGc3rw%3D%3D&ic=IC418070373362&tenant=accio&src=p_referral_IC418070373362&return_url=https%3A%2F%2Fwww.accio.com%2Fwork%2F" target="_blank">
-      <img src="icons/阿里AccioWork.svg" alt="">
-      <div class="name">AccioWork</div>
-      <div class="tooltip">阿里巴巴智能体AccioWork，最高适配阿里电商、外贸运营。</div>
-    </a>
+  <!-- ============================================================
+  导航内容（原有全部内容，结构不变）
+  ============================================================ -->
+  <div class="container">
+    <h2 class="main-title">常用起始页</h2>
+
+    <!-- ===== 检索 & 信息 ===== -->
+    <div class="category-title" style="margin-top: 10px;">检索 & 信息</div>
+    <div class="grid">
+      <a class="item" href="https://www.baidu.com" target="_blank">
+        <img src="icons/百度.svg" alt="">
+        <div class="name">百度</div>
+        <div class="tooltip">百度搜索，全球最大的中文搜索引擎，提供网页、图片、视频等搜索服务</div>
+      </a>
+      <a class="item" href="https://google.com" target="_blank">
+        <img src="icons/Google.svg" alt="">
+        <div class="name">Google</div>
+        <div class="tooltip">Google 全球最大的搜索引擎，提供网页、图片、地图、学术等全方位搜索</div>
+      </a>
+      <a class="item" href="https://mail.qq.com" target="_blank">
+        <img src="icons/QQ邮箱.svg" alt="">
+        <div class="name">QQ邮箱</div>
+        <div class="tooltip">腾讯QQ邮箱，支持超大附件、微信提醒、邮件分类等便捷功能</div>
+      </a>
+      <a class="item" href="https://mail.google.com" target="_blank">
+        <img src="icons/GoogleGmail.svg" alt="">
+        <div class="name">Gmail</div>
+        <div class="tooltip">Google 邮箱服务，提供15GB免费存储空间，智能分类和强大反垃圾功能</div>
+      </a>
+      <a class="item" href="https://outlook.live.com/mail/0/" target="_blank">
+        <img src="icons/Outlook.svg" alt="">
+        <div class="name">Outlook</div>
+        <div class="tooltip">Microsoft Outlook 邮箱，集成日历、联系人和任务管理，支持Office在线协作</div>
+      </a>
+      <a class="item" href="https://github.com/" target="_blank">
+        <img src="icons/GitHub.svg" alt="">
+        <div class="name">GitHub</div>
+        <div class="tooltip">全球最大的代码托管平台，支持Git版本控制，开源社区和协作开发</div>
+      </a>
+      <a class="item" href="https://zh.wikipedia.org/" target="_blank">
+        <img src="icons/Wikipedi.svg" alt="">
+        <div class="name">Wikipedi</div>
+        <div class="tooltip">维基百科，自由开放的百科全书，由全球志愿者共同编辑和维护</div>
+      </a>
+      <a class="item" href="https://www.douyin.com/jingxuan" target="_blank">
+        <img src="icons/抖音.svg" alt="">
+        <div class="name">抖音</div>
+        <div class="tooltip">抖音精选，国内最受欢迎的短视频平台，涵盖生活、娱乐、知识等多元内容</div>
+      </a>
+    </div>
+
+    <!-- ===== AIGC & Agent ===== -->
+    <div class="category-title">AIGC & Agent</div>
+    <div class="grid">
+      <a class="item" href="https://gemini.google.com/" target="_blank">
+        <img src="icons/GoogleGemini.svg" alt="">
+        <div class="name">Gemini</div>
+        <div class="tooltip">Google 新一代多模态AI模型，支持文本、图像、音频、视频等多种理解能力</div>
+      </a>
+      <a class="item" href="https://aistudio.google.com/" target="_blank">
+        <img src="icons/GoogleAIStudio.svg" alt="">
+        <div class="name">Google AI Studio</div>
+        <div class="tooltip">Google AI 开发平台，提供Gemini API调试、提示工程和模型调优工具</div>
+      </a>
+      <a class="item" href="https://www.doubao.com/chat/" target="_blank">
+        <img src="icons/豆包.png" alt="">
+        <div class="name">豆包</div>
+        <div class="tooltip">字节跳动推出的AI对话助手，支持多轮对话、内容创作和知识问答</div>
+      </a>
+      <a class="item" href="https://chat.deepseek.com/" target="_blank">
+        <img src="icons/DeepSeek.svg" alt="">
+        <div class="name">DeepSeek</div>
+        <div class="tooltip">深度求索大模型，以高性价比和强大推理能力著称，支持长上下文处理</div>
+      </a>
+      <a class="item" href="https://yuanbao.tencent.com/chat/" target="_blank">
+        <img src="icons/元宝.svg" alt="">
+        <div class="name">元宝</div>
+        <div class="tooltip">腾讯元宝AI助手，集成腾讯生态能力，支持文档解析、智能写作等功能</div>
+      </a>
+      <a class="item" href="https://copilot.microsoft.com/" target="_blank">
+        <img src="icons/Copilot.svg" alt="">
+        <div class="name">Copilot</div>
+        <div class="tooltip">Microsoft Copilot，基于GPT-4的AI助手，深度集成Office和Windows系统</div>
+      </a>
+      <a class="item" href="https://yiyan.baidu.com/" target="_blank">
+        <img src="icons/百度文心.svg" alt="">
+        <div class="name">文心</div>
+        <div class="tooltip">百度文心一言，基于文心大模型的AI对话产品，支持多轮交互和创意生成</div>
+      </a>
+      <a class="item" href="https://www.qianwen.com/" target="_blank">
+        <img src="icons/千问.svg" alt="">
+        <div class="name">千问</div>
+        <div class="tooltip">阿里通义千问，阿里云推出的通用AI助手，覆盖问答、创作、编程等场景</div>
+      </a>
+      <a class="item" href="http://www.chat.openai.com/" target="_blank">
+        <img src="icons/ChatGPT.svg" alt="">
+        <div class="name">ChatGPT</div>
+        <div class="tooltip">OpenAI ChatGPT，全球最知名的AI对话模型，支持文本生成、编程、分析等</div>
+      </a>
+      <a class="item" href="https://www.suno.cn/home/#/create" target="_blank">
+        <img src="icons/Sunocn.svg" alt="">
+        <div class="name">Suno.cn</div>
+        <div class="tooltip">Suno AI音乐创作平台国内版，输入文字描述即可生成完整的原创音乐</div>
+      </a>
+      <a class="item" href="https://www.suno.cn/home/#/create" target="_blank">
+        <img src="icons/Sunocom.svg" alt="">
+        <div class="name">Suno.com</div>
+        <div class="tooltip">Suno AI音乐创作国际版，支持多种音乐风格和语言，快速生成高质量歌曲</div>
+      </a>
+      <a class="item" href="https://jimeng.jianying.com/" target="_blank">
+        <img src="icons/即梦.svg" alt="">
+        <div class="name">即梦</div>
+        <div class="tooltip">即梦AI绘画与视频创作平台，支持文生图、图生视频等AIGC内容生成</div>
+      </a>
+      <a class="item" href="https://n8n.srv1692805.hstgr.cloud/home/workflows" target="_blank">
+        <img src="icons/n8n.svg" alt="">
+        <div class="name">n8n</div>
+        <div class="tooltip">n8n工作流自动化平台，支持连接数百种应用和服务，构建自动化业务流程</div>
+      </a>
+      <a class="item" href="https://copilot.tencent.com/work/" target="_blank">
+        <img src="icons/WorkBuddy.png" alt="">
+        <div class="name">WorkBuddy</div>
+        <div class="tooltip">腾讯Copilot工作助手，集成AI能力的办公辅助工具，提升工作效率</div>
+      </a>
+      <a class="item" href="https://www.coze.cn/overview" target="_blank">
+        <img src="icons/扣子.png" alt="">
+        <div class="name">Coze</div>
+        <div class="tooltip">扣子AI Bot开发平台，无需编码即可创建和部署智能对话机器人</div>
+      </a>
+      <a class="item" href="https://www.accio.com/invite-work?sId=TOzyLbBwDdC2eBIaxGc3rw%3D%3D&ic=IC418070373362&tenant=accio&src=p_referral_IC418070373362&return_url=https%3A%2F%2Fwww.accio.com%2Fwork%2F" target="_blank">
+        <img src="icons/阿里AccioWork.svg" alt="">
+        <div class="name">AccioWork</div>
+        <div class="tooltip">阿里巴巴智能体AccioWork，最高适配阿里电商、外贸运营。</div>
+      </a>
+    </div>
+
+    <!-- ===== 社媒 & 发布 ===== -->
+    <div class="category-title">社媒 & 发布</div>
+    <div class="grid">
+      <a class="item" href="https://www.tiktok.com/@Dazaocnc" target="_blank">
+        <img src="icons/TikTok.svg" alt="">
+        <div class="name">TikTok</div>
+        <div class="tooltip">TikTok国际版短视频平台，全球最受欢迎的短视频社交应用，覆盖150+国家</div>
+      </a>
+      <a class="item" href="https://studio.youtube.com/" target="_blank">
+        <img src="icons/GoogleYouTube.svg" alt="">
+        <div class="name">YouTube Studio</div>
+        <div class="tooltip">YouTube创作者工作室，视频数据分析、内容管理、收益统计一站式后台</div>
+      </a>
+      <a class="item" href="https://www.facebook.com/profile.php?id=61574767364571" target="_blank">
+        <img src="icons/Facebook.svg" alt="">
+        <div class="name">Facebook</div>
+        <div class="tooltip">全球最大的社交网络平台，连接朋友、家人和社区，分享生活动态</div>
+      </a>
+      <a class="item" href="https://www.instagram.com/" target="_blank">
+        <img src="icons/Instagram.svg" alt="">
+        <div class="name">Instagram</div>
+        <div class="tooltip">Instagram图片社交平台，以视觉内容为核心，支持照片、短视频和直播</div>
+      </a>
+      <a class="item" href="https://x.com/home" target="_blank">
+        <img src="icons/X.svg" alt="">
+        <div class="name">X</div>
+        <div class="tooltip">Twitter X社交平台，实时信息发布和讨论社区，全球新闻和热点聚集地</div>
+      </a>
+      <a class="item" href="https://www.linkedin.com/" target="_blank">
+        <img src="icons/Linkedin.svg" alt="">
+        <div class="name">Linkedin</div>
+        <div class="tooltip">LinkedIn职场社交平台，全球最大的职业社交网络，招聘和职业发展社区</div>
+      </a>
+      <a class="item" href="https://vk.com/club228030395" target="_blank">
+        <img src="icons/VK.svg" alt="">
+        <div class="name">VK</div>
+        <div class="tooltip">VK俄罗斯最大社交平台，功能类似Facebook，在东欧地区拥有广泛用户</div>
+      </a>
+      <a class="item" href="https://web.telegram.org/k/" target="_blank">
+        <img src="icons/Telegram.svg" alt="">
+        <div class="name">Telegram</div>
+        <div class="tooltip">Telegram即时通讯应用，以安全加密、频道功能和机器人生态著称</div>
+      </a>
+      <a class="item" href="https://channels.weixin.qq.com/login.html" target="_blank">
+        <img src="icons/视频号.svg" alt="">
+        <div class="name">视频号助手</div>
+        <div class="tooltip">微信视频号管理后台，支持内容发布、数据分析和粉丝互动管理</div>
+      </a>
+      <a class="item" href="https://creator.douyin.com" target="_blank">
+        <img src="icons/抖音.svg" alt="">
+        <div class="name">抖音创作者中心</div>
+        <div class="tooltip">抖音创作者服务平台，提供内容管理、数据分析、收益查看和活动参与</div>
+      </a>
+      <a class="item" href="https://sitehd.joinf.com/#/dashboard/index" target="_blank">
+        <img src="icons/富通天下.png" alt="">
+        <div class="name">富通后台</div>
+        <div class="tooltip">富通天下管理后台，企业级业务管理和运营数据监控平台</div>
+      </a>
+      <a class="item" href="https://mp.weixin.qq.com/" target="_blank">
+        <img src="icons/公众号.svg" alt="">
+        <div class="name">公众号</div>
+        <div class="tooltip">微信公众号平台，内容创作和粉丝管理，支持图文、视频等多种形式发布</div>
+      </a>
+      <a class="item" href="https://xiumi.us/#/studio/papers" target="_blank">
+        <img src="icons/秀米.png" alt="">
+        <div class="name">秀米</div>
+        <div class="tooltip">秀米图文排版工具，专注于微信公众号文章的美化排版和模板设计</div>
+      </a>
+      <a class="item" href="https://baijiahao.baidu.com/builder/rc/home" target="_blank">
+        <img src="icons/百度百家号.svg" alt="">
+        <div class="name">百家号</div>
+        <div class="tooltip">百度百家号内容平台，支持图文、视频和动态发布，获得百度流量推荐</div>
+      </a>
+      <a class="item" href="https://www.bilibili.com/" target="_blank">
+        <img src="icons/bilibili.svg" alt="">
+        <div class="name">Bilibili</div>
+        <div class="tooltip">B站视频弹幕社区，中国年轻人聚集的文化社区和视频平台</div>
+      </a>
+      <a class="item" href="https://web.whatsapp.com/" target="_blank">
+        <img src="icons/WhatsApp.svg" alt="">
+        <div class="name">WhatsApp</div>
+        <div class="tooltip">WhatsApp即时通讯应用，全球用户量最大的消息应用，端到端加密</div>
+      </a>
+    </div>
+
+    <!-- ===== 数据 & 分析 ===== -->
+    <div class="category-title">数据 & 分析</div>
+    <div class="grid">
+      <a class="item" href="https://trends.google.com/home" target="_blank">
+        <img src="icons/GoogleTrends.svg" alt="">
+        <div class="name">Google Trends</div>
+        <div class="tooltip">Google趋势分析工具，查看关键词搜索热度变化和地区分布数据</div>
+      </a>
+      <a class="item" href="https://dash.3ue.co/#/register" target="_blank">
+        <img src="icons/semrush.svg" alt="">
+        <div class="name">SEMRUSH</div>
+        <div class="tooltip">Semrush全能SEO工具，关键词研究、竞品分析和网站流量数据洞察</div>
+      </a>
+      <a class="item" href="https://answerthepublic.com/en/reports/aef082cf-3116-445d-9985-10e6d9eb5f29" target="_blank">
+        <img src="icons/AnswerThePublic.svg" alt="">
+        <div class="name">AnswerThePublic</div>
+        <div class="tooltip">AnswerThePublic关键词研究工具，基于搜索数据生成用户关注的问题和短语</div>
+      </a>
+      <a class="item" href="https://www.similarsites.com/" target="_blank">
+        <img src="icons/SimilarSites.svg" alt="">
+        <div class="name">SimilarSites</div>
+        <div class="tooltip">SimilarSites相似网站发现工具，帮助找到同类网站和竞品分析</div>
+      </a>
+      <a class="item" href="https://index.baidu.com/v2/index.html#/" target="_blank">
+        <img src="icons/百度指数.svg" alt="">
+        <div class="name">百度指数</div>
+        <div class="tooltip">百度指数数据平台，查看关键词搜索趋势、人群画像和需求图谱</div>
+      </a>
+      <a class="item" href="https://wximg.qq.com/mmsearch/h5/dist/wxindex/logo_url.png#/" target="_blank">
+        <img src="icons/微信指数.svg" alt="">
+        <div class="name">微信指数</div>
+        <div class="tooltip">微信指数小程序，基于微信生态的海量数据，分析关键词热度变化</div>
+      </a>
+      <a class="item" href="https://creator.douyin.com/creator-micro/creator-count/arithmetic-index" target="_blank">
+        <img src="icons/抖音指数.svg" alt="">
+        <div class="name">抖音指数</div>
+        <div class="tooltip">抖音指数分析工具，查看话题热度和内容趋势，辅助创作决策</div>
+      </a>
+      <a class="item" href="https://baidu.com" target="_blank">
+        <img src="icons/空.svg" alt="">
+        <div class="name"> </div>
+        <div class="tooltip"> </div>
+      </a>
+    </div>
+
+    <!-- ===== DAZAO & BKD ===== -->
+    <div class="category-title">DAZAO & BKD</div>
+    <div class="grid">
+      <a class="item" href="https://jyhcn.en.alibaba.com/" target="_blank">
+        <img src="icons/阿里国际站.svg" alt="">
+        <div class="name">DAZAO</div>
+        <div class="tooltip">DAZAO阿里国际站店铺，面向全球客户的B2B机械制造和加工服务</div>
+      </a>
+      <a class="item" href="https://dazaocn.1688.com/" target="_blank">
+        <img src="icons/阿里1688.svg" alt="">
+        <div class="name">DAZAO</div>
+        <div class="tooltip">DAZAO 1688国内店铺，提供机械配件、模具加工等工业品供应</div>
+      </a>
+      <a class="item" href="https://dazao-machinery.en.made-in-china.com/" target="_blank">
+        <img src="icons/制造网.svg" alt="">
+        <div class="name">DAZAO</div>
+        <div class="tooltip">DAZAO中国制造网店铺，展示机械设备和加工能力，对接海外采购商</div>
+      </a>
+      <a class="item" href="https://www.dazaocn.com/" target="_blank">
+        <img src="icons/公司DAZAO.svg" alt="">
+        <div class="name">dazaocn.com</div>
+        <div class="tooltip">DAZAO公司官网，展示企业实力、产品信息和加工服务案例</div>
+      </a>
+      <a class="item" href="https://www.dazaocncmachining.com/" target="_blank">
+        <img src="icons/公司DAZAO.svg" alt="">
+        <div class="name">machining.com</div>
+        <div class="tooltip">DAZAO CNC加工专业网站，提供精密机械加工服务和技术支持</div>
+      </a>
+      <a class="item" href="https://moldmanufacturing.en.alibaba.com/" target="_blank">
+        <img src="icons/阿里国际站.svg" alt="">
+        <div class="name">BKD</div>
+        <div class="tooltip">BKD阿里国际站店铺，专注模具制造和注塑成型解决方案</div>
+      </a>
+      <a class="item" href="https://shuangyicn.1688.com/" target="_blank">
+        <img src="icons/阿里1688.svg" alt="">
+        <div class="name">BKD</div>
+        <div class="tooltip">BKD 1688国内店铺，提供模具配件和注塑产品供应服务</div>
+      </a>
+      <a class="item" href="https://bokaidi.cn/" target="_blank">
+        <img src="icons/公司BKD.svg" alt="">
+        <div class="name">bokaidi.cn</div>
+        <div class="tooltip">BKD公司官网，展示模具设计、制造和注塑加工一体化能力</div>
+      </a>
+    </div>
+
+    <!-- ===== 实用 & 小工具 ===== -->
+    <div class="category-title">实用 & 小工具</div>
+    <div class="grid">
+      <a class="item" href="html字数统计.html" target="_blank">
+        <img src="icons/Hzifutongji.svg" alt="">
+        <div class="name">字符统计</div>
+        <div class="tooltip">在线字数统计工具，快速统计文本字数、字符数和段落数</div>
+      </a>
+      <a class="item" href="html转换大小写.html" target="_blank">
+        <img src="icons/Hdaxiaoxie.svg" alt="">
+        <div class="name">大小写转换</div>
+        <div class="tooltip">字母大小写转换工具，支持全大写、全小写和首字母大写等多种模式</div>
+      </a>
+      <a class="item" href="html转换花式字.html" target="_blank">
+        <img src="icons/Hhuazimu.svg" alt="">
+        <div class="name">花式字母转换</div>
+        <div class="tooltip">花式字体生成工具，将普通文字转换为各种艺术字体和装饰样式</div>
+      </a>
+      <a class="item" href="html特殊符号大全.html" target="_blank">
+        <img src="icons/Hfuhaodaquan.svg" alt="">
+        <div class="name">特殊符号大全</div>
+        <div class="tooltip">特殊符号集合，提供各种符号、表情和特殊字符的快速复制使用</div>
+      </a>
+      <a class="item" href="html转换简体繁体.html" target="_blank">
+        <img src="icons/Hfantizi.svg" alt="">
+        <div class="name">繁体字转换</div>
+        <div class="tooltip">简体繁体互转工具，支持简繁转换和批量文本处理</div>
+      </a>
+      <a class="item" href="html查询ip信息.html" target="_blank">
+        <img src="icons/Hip.svg" alt="">
+        <div class="name">查询ip信息</div>
+        <div class="tooltip">IP归属地查询工具，快速获取IP地址的地理位置和网络信息</div>
+      </a>
+      <a class="item" href="html随机抽奖.html" target="_blank">
+        <img src="icons/Hchoujiang.svg" alt="">
+        <div class="name">随机抽奖</div>
+        <div class="tooltip">随机抽奖工具，支持自定义名单和奖项设置，公平随机抽取</div>
+      </a>
+      <a class="item" href="2.html" target="_blank">
+        <img src="icons/H2.svg" alt="">
+        <div class="name">业务导航</div>
+        <div class="tooltip">业务导航页面，整合各类业务系统和常用工作入口</div>
+      </a>
+      <a class="item" href="https://www.taobao.com/" target="_blank">
+        <img src="icons/阿里淘宝.svg" alt="">
+        <div class="name">淘宝</div>
+        <div class="tooltip">淘阿淘阿淘阿淘</div>
+      </a>
+      <a class="item" href="https://www.iconfont.cn/" target="_blank">
+        <img src="icons/iconfont.svg" alt="">
+        <div class="name">iconfont素材库</div>
+        <div class="tooltip">阿里巴巴矢量图标库，海量高质量图标素材免费下载和使用</div>
+      </a>
+      <a class="item" href="https://cdnlogo.com" target="_blank">
+        <img src="icons/CDN.svg" alt="">
+        <div class="name">CDNlogo</div>
+        <div class="tooltip">CDN Logo资源库，提供各类品牌Logo的矢量文件下载</div>
+      </a>
+      <a class="item" href="https://whoer.net/zh" target="_blank">
+        <img src="icons/whoer.png" alt="">
+        <div class="name">Whoer伪装度</div>
+        <div class="tooltip">Whoer IP伪装度检测，评估网络环境的安全性和匿名程度</div>
+      </a>
+      <a class="item" href="https://ping.chinaz.com/" target="_blank">
+        <img src="icons/站长之家.svg" alt="">
+        <div class="name">多个地点Ping</div>
+        <div class="tooltip">多地点Ping检测，从全球多个节点测试网络延迟和访问速度</div>
+      </a>
+    </div>
   </div>
 
-  <!-- ===== 社媒 & 发布 ===== -->
-  <div class="category-title">社媒 & 发布</div>
-  <div class="grid">
-    <a class="item" href="https://www.tiktok.com/@Dazaocnc" target="_blank">
-      <img src="icons/TikTok.svg" alt="">
-      <div class="name">TikTok</div>
-      <div class="tooltip">TikTok国际版短视频平台，全球最受欢迎的短视频社交应用，覆盖150+国家</div>
-    </a>
-    <a class="item" href="https://studio.youtube.com/" target="_blank">
-      <img src="icons/GoogleYouTube.svg" alt="">
-      <div class="name">YouTube Studio</div>
-      <div class="tooltip">YouTube创作者工作室，视频数据分析、内容管理、收益统计一站式后台</div>
-    </a>
-    <a class="item" href="https://www.facebook.com/profile.php?id=61574767364571" target="_blank">
-      <img src="icons/Facebook.svg" alt="">
-      <div class="name">Facebook</div>
-      <div class="tooltip">全球最大的社交网络平台，连接朋友、家人和社区，分享生活动态</div>
-    </a>
-    <a class="item" href="https://www.instagram.com/" target="_blank">
-      <img src="icons/Instagram.svg" alt="">
-      <div class="name">Instagram</div>
-      <div class="tooltip">Instagram图片社交平台，以视觉内容为核心，支持照片、短视频和直播</div>
-    </a>
-    <a class="item" href="https://x.com/home" target="_blank">
-      <img src="icons/X.svg" alt="">
-      <div class="name">X</div>
-      <div class="tooltip">Twitter X社交平台，实时信息发布和讨论社区，全球新闻和热点聚集地</div>
-    </a>
-    <a class="item" href="https://www.linkedin.com/" target="_blank">
-      <img src="icons/Linkedin.svg" alt="">
-      <div class="name">Linkedin</div>
-      <div class="tooltip">LinkedIn职场社交平台，全球最大的职业社交网络，招聘和职业发展社区</div>
-    </a>
-    <a class="item" href="https://vk.com/club228030395" target="_blank">
-      <img src="icons/VK.svg" alt="">
-      <div class="name">VK</div>
-      <div class="tooltip">VK俄罗斯最大社交平台，功能类似Facebook，在东欧地区拥有广泛用户</div>
-    </a>
-    <a class="item" href="https://web.telegram.org/k/" target="_blank">
-      <img src="icons/Telegram.svg" alt="">
-      <div class="name">Telegram</div>
-      <div class="tooltip">Telegram即时通讯应用，以安全加密、频道功能和机器人生态著称</div>
-    </a>
-    <a class="item" href="https://channels.weixin.qq.com/login.html" target="_blank">
-      <img src="icons/视频号.svg" alt="">
-      <div class="name">视频号助手</div>
-      <div class="tooltip">微信视频号管理后台，支持内容发布、数据分析和粉丝互动管理</div>
-    </a>
-    <a class="item" href="https://creator.douyin.com" target="_blank">
-      <img src="icons/抖音.svg" alt="">
-      <div class="name">抖音创作者中心</div>
-      <div class="tooltip">抖音创作者服务平台，提供内容管理、数据分析、收益查看和活动参与</div>
-    </a>
-    <a class="item" href="https://sitehd.joinf.com/#/dashboard/index" target="_blank">
-      <img src="icons/富通天下.png" alt="">
-      <div class="name">富通后台</div>
-      <div class="tooltip">富通天下管理后台，企业级业务管理和运营数据监控平台</div>
-    </a>
-    <a class="item" href="https://mp.weixin.qq.com/" target="_blank">
-      <img src="icons/公众号.svg" alt="">
-      <div class="name">公众号</div>
-      <div class="tooltip">微信公众号平台，内容创作和粉丝管理，支持图文、视频等多种形式发布</div>
-    </a>
-    <a class="item" href="https://xiumi.us/#/studio/papers" target="_blank">
-      <img src="icons/秀米.png" alt="">
-      <div class="name">秀米</div>
-      <div class="tooltip">秀米图文排版工具，专注于微信公众号文章的美化排版和模板设计</div>
-    </a>
-    <a class="item" href="https://baijiahao.baidu.com/builder/rc/home" target="_blank">
-      <img src="icons/百度百家号.svg" alt="">
-      <div class="name">百家号</div>
-      <div class="tooltip">百度百家号内容平台，支持图文、视频和动态发布，获得百度流量推荐</div>
-    </a>
-    <a class="item" href="https://www.bilibili.com/" target="_blank">
-      <img src="icons/bilibili.svg" alt="">
-      <div class="name">Bilibili</div>
-      <div class="tooltip">B站视频弹幕社区，中国年轻人聚集的文化社区和视频平台</div>
-    </a>
-    <a class="item" href="https://web.whatsapp.com/" target="_blank">
-      <img src="icons/WhatsApp.svg" alt="">
-      <div class="name">WhatsApp</div>
-      <div class="tooltip">WhatsApp即时通讯应用，全球用户量最大的消息应用，端到端加密</div>
-    </a>
-  </div>
+  <script>
+    // ============================================================
+    // 🚀 鼠标交互特效（原「鼠标交互.html」核心逻辑）
+    //    注意：使用独立的 #mouse-layer 容器，不干扰导航功能
+    // ============================================================
+    (function() {
+      // 确保全局变量不污染
+      var TweenLite = window.TweenLite;
+      var Power1 = window.Power1;
+      var Rx = window.Rx;
 
-  <!-- ===== 数据 & 分析 ===== -->
-  <div class="category-title">数据 & 分析</div>
-  <div class="grid">
-    <a class="item" href="https://trends.google.com/home" target="_blank">
-      <img src="icons/GoogleTrends.svg" alt="">
-      <div class="name">Google Trends</div>
-      <div class="tooltip">Google趋势分析工具，查看关键词搜索热度变化和地区分布数据</div>
-    </a>
-    <a class="item" href="https://dash.3ue.co/#/register" target="_blank">
-      <img src="icons/semrush.svg" alt="">
-      <div class="name">SEMRUSH</div>
-      <div class="tooltip">Semrush全能SEO工具，关键词研究、竞品分析和网站流量数据洞察</div>
-    </a>
-    <a class="item" href="https://answerthepublic.com/en/reports/aef082cf-3116-445d-9985-10e6d9eb5f29" target="_blank">
-      <img src="icons/AnswerThePublic.svg" alt="">
-      <div class="name">AnswerThePublic</div>
-      <div class="tooltip">AnswerThePublic关键词研究工具，基于搜索数据生成用户关注的问题和短语</div>
-    </a>
-    <a class="item" href="https://www.similarsites.com/" target="_blank">
-      <img src="icons/SimilarSites.svg" alt="">
-      <div class="name">SimilarSites</div>
-      <div class="tooltip">SimilarSites相似网站发现工具，帮助找到同类网站和竞品分析</div>
-    </a>
-    <a class="item" href="https://index.baidu.com/v2/index.html#/" target="_blank">
-      <img src="icons/百度指数.svg" alt="">
-      <div class="name">百度指数</div>
-      <div class="tooltip">百度指数数据平台，查看关键词搜索趋势、人群画像和需求图谱</div>
-    </a>
-    <a class="item" href="https://wximg.qq.com/mmsearch/h5/dist/wxindex/logo_url.png#/" target="_blank">
-      <img src="icons/微信指数.svg" alt="">
-      <div class="name">微信指数</div>
-      <div class="tooltip">微信指数小程序，基于微信生态的海量数据，分析关键词热度变化</div>
-    </a>
-    <a class="item" href="https://creator.douyin.com/creator-micro/creator-count/arithmetic-index" target="_blank">
-      <img src="icons/抖音指数.svg" alt="">
-      <div class="name">抖音指数</div>
-      <div class="tooltip">抖音指数分析工具，查看话题热度和内容趋势，辅助创作决策</div>
-    </a>
-    <a class="item" href="https://baidu.com" target="_blank">
-      <img src="icons/空.svg" alt="">
-      <div class="name"> </div>
-      <div class="tooltip"> </div>
-    </a>
-  </div>
+      // 获取独立的 stage
+      var stage = document.getElementById('stage');
+      var container = document.getElementById('mouse-layer');
 
-  <!-- ===== DAZAO & BKD ===== -->
-  <div class="category-title">DAZAO & BKD</div>
-  <div class="grid">
-    <a class="item" href="https://jyhcn.en.alibaba.com/" target="_blank">
-      <img src="icons/阿里国际站.svg" alt="">
-      <div class="name">DAZAO</div>
-      <div class="tooltip">DAZAO阿里国际站店铺，面向全球客户的B2B机械制造和加工服务</div>
-    </a>
-    <a class="item" href="https://dazaocn.1688.com/" target="_blank">
-      <img src="icons/阿里1688.svg" alt="">
-      <div class="name">DAZAO</div>
-      <div class="tooltip">DAZAO 1688国内店铺，提供机械配件、模具加工等工业品供应</div>
-    </a>
-    <a class="item" href="https://dazao-machinery.en.made-in-china.com/" target="_blank">
-      <img src="icons/制造网.svg" alt="">
-      <div class="name">DAZAO</div>
-      <div class="tooltip">DAZAO中国制造网店铺，展示机械设备和加工能力，对接海外采购商</div>
-    </a>
-    <a class="item" href="https://www.dazaocn.com/" target="_blank">
-      <img src="icons/公司DAZAO.svg" alt="">
-      <div class="name">dazaocn.com</div>
-      <div class="tooltip">DAZAO公司官网，展示企业实力、产品信息和加工服务案例</div>
-    </a>
-    <a class="item" href="https://www.dazaocncmachining.com/" target="_blank">
-      <img src="icons/公司DAZAO.svg" alt="">
-      <div class="name">machining.com</div>
-      <div class="tooltip">DAZAO CNC加工专业网站，提供精密机械加工服务和技术支持</div>
-    </a>
-    <a class="item" href="https://moldmanufacturing.en.alibaba.com/" target="_blank">
-      <img src="icons/阿里国际站.svg" alt="">
-      <div class="name">BKD</div>
-      <div class="tooltip">BKD阿里国际站店铺，专注模具制造和注塑成型解决方案</div>
-    </a>
-    <a class="item" href="https://shuangyicn.1688.com/" target="_blank">
-      <img src="icons/阿里1688.svg" alt="">
-      <div class="name">BKD</div>
-      <div class="tooltip">BKD 1688国内店铺，提供模具配件和注塑产品供应服务</div>
-    </a>
-    <a class="item" href="https://bokaidi.cn/" target="_blank">
-      <img src="icons/公司BKD.svg" alt="">
-      <div class="name">bokaidi.cn</div>
-      <div class="tooltip">BKD公司官网，展示模具设计、制造和注塑加工一体化能力</div>
-    </a>
-  </div>
+      var SquiggleState = {
+        ready: 0,
+        animating: 1,
+        ended: 2
+      };
 
-  <!-- ===== 实用 & 小工具 ===== -->
-  <div class="category-title">实用 & 小工具</div>
-  <div class="grid">
-    <a class="item" href="html字数统计.html" target="_blank">
-      <img src="icons/Hzifutongji.svg" alt="">
-      <div class="name">字符统计</div>
-      <div class="tooltip">在线字数统计工具，快速统计文本字数、字符数和段落数</div>
-    </a>
-    <a class="item" href="html转换大小写.html" target="_blank">
-      <img src="icons/Hdaxiaoxie.svg" alt="">
-      <div class="name">大小写转换</div>
-      <div class="tooltip">字母大小写转换工具，支持全大写、全小写和首字母大写等多种模式</div>
-    </a>
-    <a class="item" href="html转换花式字.html" target="_blank">
-      <img src="icons/Hhuazimu.svg" alt="">
-      <div class="name">花式字母转换</div>
-      <div class="tooltip">花式字体生成工具，将普通文字转换为各种艺术字体和装饰样式</div>
-    </a>
-    <a class="item" href="html特殊符号大全.html" target="_blank">
-      <img src="icons/Hfuhaodaquan.svg" alt="">
-      <div class="name">特殊符号大全</div>
-      <div class="tooltip">特殊符号集合，提供各种符号、表情和特殊字符的快速复制使用</div>
-    </a>
-    <a class="item" href="html转换简体繁体.html" target="_blank">
-      <img src="icons/Hfantizi.svg" alt="">
-      <div class="name">繁体字转换</div>
-      <div class="tooltip">简体繁体互转工具，支持简繁转换和批量文本处理</div>
-    </a>
-    <a class="item" href="html查询ip信息.html" target="_blank">
-      <img src="icons/Hip.svg" alt="">
-      <div class="name">查询ip信息</div>
-      <div class="tooltip">IP归属地查询工具，快速获取IP地址的地理位置和网络信息</div>
-    </a>
-    <a class="item" href="html随机抽奖.html" target="_blank">
-      <img src="icons/Hchoujiang.svg" alt="">
-      <div class="name">随机抽奖</div>
-      <div class="tooltip">随机抽奖工具，支持自定义名单和奖项设置，公平随机抽取</div>
-    </a>
-    <a class="item" href="2.html" target="_blank">
-      <img src="icons/H2.svg" alt="">
-      <div class="name">业务导航</div>
-      <div class="tooltip">业务导航页面，整合各类业务系统和常用工作入口</div>
-    </a>
-        <a class="item" href="https://www.taobao.com/" target="_blank">
-      <img src="icons/阿里淘宝.svg" alt="">
-      <div class="name">淘宝</div>
-      <div class="tooltip">淘阿淘阿淘阿淘</div>
-    </a>
-    <a class="item" href="https://www.iconfont.cn/" target="_blank">
-      <img src="icons/iconfont.svg" alt="">
-      <div class="name">iconfont素材库</div>
-      <div class="tooltip">阿里巴巴矢量图标库，海量高质量图标素材免费下载和使用</div>
-    </a>
-    <a class="item" href="https://cdnlogo.com" target="_blank">
-      <img src="icons/CDN.svg" alt="">
-      <div class="name">CDNlogo</div>
-      <div class="tooltip">CDN Logo资源库，提供各类品牌Logo的矢量文件下载</div>
-    </a>
-    <a class="item" href="https://whoer.net/zh" target="_blank">
-      <img src="icons/whoer.png" alt="">
-      <div class="name">Whoer伪装度</div>
-      <div class="tooltip">Whoer IP伪装度检测，评估网络环境的安全性和匿名程度</div>
-    </a>
-    <a class="item" href="https://ping.chinaz.com/" target="_blank">
-      <img src="icons/站长之家.svg" alt="">
-      <div class="name">多个地点Ping</div>
-      <div class="tooltip">多地点Ping检测，从全球多个节点测试网络延迟和访问速度</div>
-    </a>
-  </div>
-</div>
+      var Squiggle = /** @class */ (function() {
+        function Squiggle(stage, settings, grid) {
+          this.sqwigs = [];
+          this.state = SquiggleState.ready;
+          this.grid = grid;
+          this.stage = stage;
+
+          settings.width = 0;
+          settings.opacity = 1;
+
+          this.state = SquiggleState.animating;
+          var path = this.createLine(settings);
+          var sqwigCount = 3;
+          for (var i = 0; i < sqwigCount; i++) {
+            this.createSqwig(i, sqwigCount, path, JSON.parse(JSON.stringify(settings)), i === sqwigCount - 1);
+          }
+        }
+
+        Squiggle.prototype.createSqwig = function(index, total, path, settings, forceWhite) {
+          var _this = this;
+          var sqwig = document.createElementNS("http://www.w3.org/2000/svg", 'path');
+          sqwig.setAttribute('d', path);
+          sqwig.style.fill = 'none';
+          sqwig.style.stroke = forceWhite ? '#ffffff' : this.getColor();
+          sqwig.style.strokeLinecap = "round";
+
+          settings.length = sqwig.getTotalLength();
+          settings.chunkLength = settings.length / 6;
+          settings.progress = settings.chunkLength;
+
+          sqwig.style.strokeDasharray = settings.chunkLength + ", " + (settings.length + settings.chunkLength);
+          sqwig.style.strokeDashoffset = settings.progress;
+
+          this.stage.appendChild(sqwig);
+
+          this.sqwigs.unshift({ path: sqwig, settings: settings });
+
+          TweenLite.to(settings, settings.sections * 0.1, {
+            progress: -settings.length,
+            width: settings.sections * 0.9,
+            ease: Power1.easeOut,
+            delay: index * (settings.sections * 0.01),
+            onComplete: function() {
+              if (index === total - 1) _this.state = SquiggleState.ended;
+              sqwig.remove();
+            }
+          });
+        };
+
+        Squiggle.prototype.update = function() {
+          this.sqwigs.map(function(set) {
+            set.path.style.strokeDashoffset = set.settings.progress;
+            set.path.style.strokeWidth = set.settings.width + 'px';
+            set.path.style.opacity = set.settings.opacity;
+          });
+        };
+
+        Squiggle.prototype.createLine = function(settings) {
+          var x = settings.x;
+          var y = settings.y;
+          var dx = settings.directionX;
+          var dy = settings.directionY;
+          var path = ['M', '' + x, '' + y, "Q"];
+
+          var steps = settings.sections;
+          var step = 0;
+          var getNewDirection = function(direction, goAnywhere) {
+            if (!goAnywhere && settings['direction' + direction.toUpperCase()] !== 0)
+              return settings['direction' + direction.toUpperCase()];
+            return Math.random() < 0.5 ? -1 : 1;
+          };
+
+          while (step < steps * 2) {
+            step++;
+            x += (dx * (step / 30)) * this.grid;
+            y += (dy * (step / 30)) * this.grid;
+            if (step !== 1) path.push(',');
+            path.push('' + x);
+            path.push('' + y);
+
+            if (step % 2 !== 0) {
+              dx = dx === 0 ? getNewDirection('x', step > 8) : 0;
+              dy = dy === 0 ? getNewDirection('y', step > 8) : 0;
+            }
+          }
+
+          return path.join(' ');
+        };
+
+        Squiggle.prototype.getColor = function() {
+          var offset = Math.round(Math.random() * 100);
+          var r = Math.sin(0.3 * offset) * 100 + 155;
+          var g = Math.sin(0.3 * offset + 2) * 100 + 155;
+          var b = Math.sin(0.3 * offset + 4) * 100 + 155;
+          return "#" + this.componentToHex(r) + this.componentToHex(g) + this.componentToHex(b);
+        };
+
+        Squiggle.prototype.componentToHex = function(c) {
+          var hex = Math.round(c).toString(16);
+          return hex.length === 1 ? "0" + hex : hex;
+        };
+
+        return Squiggle;
+      })();
+
+      var App = /** @class */ (function() {
+        function App(container) {
+          var _this = this;
+          this.squiggles = [];
+          this.width = 600;
+          this.height = 600;
+          this.grid = 40;
+
+          this.container = container;
+          this.svg = document.getElementById('stage');
+          this.onResize();
+
+          this.tick();
+
+          var input = new Input(this.container);
+
+          input.moves.subscribe(function(position) {
+            for (var i = 0; i < 3; i++) _this.createSqwigFromMouse(position);
+          });
+
+          input.starts.subscribe(function(position) { _this.lastMousePosition = position; });
+          input.ends.subscribe(function(position) { _this.burst(true); });
+
+          if (location.pathname.match(/fullcpgrid/i)) {
+            setInterval(function() { _this.burst(false); }, 1000);
+          }
+
+          Rx.Observable.fromEvent(window, "resize").subscribe(function() { _this.onResize(); });
+        }
+
+        App.prototype.burst = function(fromMouse) {
+          if (fromMouse === void 0) { fromMouse = false; }
+          for (var i = 0; i < 5; i++) {
+            this.createRandomSqwig(fromMouse);
+          }
+        };
+
+        App.prototype.createSqwigFromMouse = function(position) {
+          var sections = 4;
+          if (this.lastMousePosition) {
+            var newDirection = { x: 0, y: 0 };
+            var xAmount = Math.abs(this.lastMousePosition.x - position.x);
+            var yAmount = Math.abs(this.lastMousePosition.y - position.y);
+
+            if (xAmount > yAmount) {
+              newDirection.x = this.lastMousePosition.x - position.x < 0 ? 1 : -1;
+              sections += Math.round(xAmount / 4);
+            } else {
+              newDirection.y = this.lastMousePosition.y - position.y < 0 ? 1 : -1;
+              sections += Math.round(yAmount / 4);
+            }
+            this.direction = newDirection;
+          }
+
+          if (this.direction) {
+            var settings = {
+              x: this.lastMousePosition.x,
+              y: this.lastMousePosition.y,
+              directionX: this.direction.x,
+              directionY: this.direction.y,
+              sections: sections > 20 ? 20 : sections
+            };
+            var newSqwig = new Squiggle(this.svg, settings, 10 + Math.random() * (sections * 1.5));
+            this.squiggles.push(newSqwig);
+          }
+
+          this.lastMousePosition = position;
+        };
+
+        App.prototype.createRandomSqwig = function(fromMouse) {
+          if (fromMouse === void 0) { fromMouse = false; }
+          var dx = Math.random();
+          if (dx > 0.5) {
+            dx = dx > 0.75 ? 1 : -1;
+          } else {
+            dx = 0;
+          }
+          var dy = 0;
+          if (dx === 0) {
+            dx = Math.random() > 0.5 ? 1 : -1;
+          }
+
+          var settings = {
+            x: fromMouse ? this.lastMousePosition.x : this.width / 2,
+            y: fromMouse ? this.lastMousePosition.y : this.height / 2,
+            directionX: dx,
+            directionY: dy,
+            sections: 5 + Math.round(Math.random() * 15)
+          };
+          var newSqwig = new Squiggle(this.svg, settings, this.grid / 2 + Math.random() * this.grid / 2);
+          this.squiggles.push(newSqwig);
+        };
+
+        App.prototype.onResize = function() {
+          this.width = this.container.offsetWidth;
+          this.height = this.container.offsetHeight;
+
+          this.svg.setAttribute('width', String(this.width));
+          this.svg.setAttribute('height', String(this.height));
+        };
+
+        App.prototype.tick = function() {
+          var _this = this;
+          var step = this.squiggles.length - 1;
+
+          while (step >= 0) {
+            if (this.squiggles[step].state !== SquiggleState.ended) {
+              this.squiggles[step].update();
+            } else {
+              this.squiggles[step] = null;
+              this.squiggles.splice(step, 1);
+            }
+            --step;
+          }
+
+          requestAnimationFrame(function() { _this.tick(); });
+        };
+
+        return App;
+      })();
+
+      var Input = /** @class */ (function() {
+        function Input(element) {
+          this.mouseEventToCoordinate = function(mouseEvent) {
+            mouseEvent.preventDefault();
+            return { x: mouseEvent.clientX, y: mouseEvent.clientY };
+          };
+          this.touchEventToCoordinate = function(touchEvent) {
+            touchEvent.preventDefault();
+            return { x: touchEvent.changedTouches[0].clientX, y: touchEvent.changedTouches[0].clientY };
+          };
+
+          this.mouseDowns = Rx.Observable.fromEvent(element, "mousedown")
+            .map(this.mouseEventToCoordinate);
+          this.mouseMoves = Rx.Observable.fromEvent(window, "mousemove")
+            .map(this.mouseEventToCoordinate);
+          this.mouseUps = Rx.Observable.fromEvent(window, "mouseup")
+            .map(this.mouseEventToCoordinate);
+
+          this.touchStarts = Rx.Observable.fromEvent(element, "touchstart")
+            .map(this.touchEventToCoordinate);
+          this.touchMoves = Rx.Observable.fromEvent(element, "touchmove")
+            .map(this.touchEventToCoordinate);
+          this.touchEnds = Rx.Observable.fromEvent(window, "touchend")
+            .map(this.touchEventToCoordinate);
+
+          this.starts = this.mouseDowns.merge(this.touchStarts);
+          this.moves = this.mouseMoves.merge(this.touchMoves);
+          this.ends = this.mouseUps.merge(this.touchEnds);
+        }
+
+        return Input;
+      })();
+
+      // 启动 App
+      var appContainer = document.getElementById('mouse-layer');
+      var app = new App(appContainer);
+    })();
+  </script>
 </body>
 </html>
