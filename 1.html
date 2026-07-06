@@ -24,7 +24,7 @@
     }
 
     /* ============================================================
-       鼠标交互层 —— 置顶（覆盖全屏，但指针事件穿透）
+       鼠标交互层 —— 置顶，完全透明，指针穿透
        ============================================================ */
     #mouse-layer {
       position: fixed;
@@ -33,24 +33,22 @@
       width: 100vw;
       height: 100vh;
       z-index: 9999;
-      /* 置于最上层 */
-      pointer-events: none;
-      /* 🔑 关键：让鼠标事件穿透，不干扰导航点击 */
+      pointer-events: none !important;
+      /* 强制穿透 */
       overflow: hidden;
       background: transparent;
-      /* 完全透明背景，仅显示波浪线条 */
     }
 
     #mouse-layer svg {
       display: block;
       width: 100%;
       height: 100%;
-      pointer-events: none;
+      pointer-events: none !important;
       /* SVG 本身也不拦截事件 */
     }
 
     /* ============================================================
-       导航页面样式（原有样式，微调确保不被遮挡）
+       导航页面样式
        ============================================================ */
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -62,14 +60,12 @@
       position: relative;
     }
 
-    /* 导航容器增加相对定位，确保在 mouse-layer 下面 */
     .container {
       width: 100%;
       max-width: 1200px;
       min-width: 800px;
       position: relative;
       z-index: 1;
-      /* 低于 mouse-layer 的 9999 */
     }
 
     .category-title {
@@ -107,9 +103,11 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      cursor: default;
-      z-index: auto;
+      cursor: pointer;
+      /* 改为 pointer 确保点击感 */
       margin-bottom: 4px;
+      z-index: 2;
+      /* 确保在波浪层之上可点击 */
     }
 
     .item:hover {
@@ -130,7 +128,7 @@
       pointer-events: none;
     }
 
-    /* ----- 悬浮提示小窗 - 加宽版，适合长文字 ----- */
+    /* ----- 悬浮提示小窗 ----- */
     .item .tooltip {
       visibility: hidden;
       opacity: 0;
@@ -140,29 +138,23 @@
       transform: translateX(-50%) translateY(-8px);
       background: #2d2d2d;
       color: #fff;
-      text-align: center;
+      text-align: left;
       padding: 10px 16px;
       border-radius: 10px;
       font-size: 13px;
-      font-weight: 400;
       line-height: 1.6;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
       transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
       z-index: 99999;
       pointer-events: none;
-      /* 加宽：最大宽度 280px，最少 200px */
       min-width: 200px;
       max-width: 280px;
       width: max-content;
       word-break: break-word;
       white-space: normal;
-      overflow: visible;
       margin-bottom: 8px;
-      /* 长文字左对齐更易读 */
-      text-align: left;
     }
 
-    /* 小三角装饰 - 朝上 */
     .item .tooltip::after {
       content: "";
       position: absolute;
@@ -171,23 +163,19 @@
       transform: translateX(-50%);
       border: 7px solid transparent;
       border-top-color: #2d2d2d;
-      z-index: 99999;
     }
 
-    /* 悬浮时显示 + 轻微上浮动画 */
     .item:hover .tooltip {
       visibility: visible;
       opacity: 1;
       transform: translateX(-50%) translateY(-14px);
     }
 
-    /* 空占位不显示提示 */
     .item .tooltip-empty {
       visibility: hidden !important;
       opacity: 0 !important;
     }
 
-    /* 确保所有父容器不限制溢出 */
     .grid,
     .container,
     body {
@@ -232,7 +220,7 @@
   </div>
 
   <!-- ============================================================
-  导航内容（原有全部内容，结构不变）
+  导航内容（完整保留）
   ============================================================ -->
   <div class="container">
     <h2 class="main-title">常用起始页</h2>
@@ -615,16 +603,13 @@
 
   <script>
     // ============================================================
-    // 🚀 鼠标交互特效（原「鼠标交互.html」核心逻辑）
-    //    注意：使用独立的 #mouse-layer 容器，不干扰导航功能
+    // 🚀 鼠标交互特效（优化版 - 确保点击正常）
     // ============================================================
     (function() {
-      // 确保全局变量不污染
       var TweenLite = window.TweenLite;
       var Power1 = window.Power1;
       var Rx = window.Rx;
 
-      // 获取独立的 stage
       var stage = document.getElementById('stage');
       var container = document.getElementById('mouse-layer');
 
@@ -753,14 +738,30 @@
 
           this.tick();
 
+          // 🔑 关键修改：只监听鼠标移动，不监听点击事件
+          // 这样波浪特效跟随鼠标，但不会干扰点击
           var input = new Input(this.container);
 
+          // 只保留鼠标移动产生波浪
           input.moves.subscribe(function(position) {
             for (var i = 0; i < 3; i++) _this.createSqwigFromMouse(position);
           });
 
-          input.starts.subscribe(function(position) { _this.lastMousePosition = position; });
-          input.ends.subscribe(function(position) { _this.burst(true); });
+          // 点击时产生爆裂效果（但不影响导航点击）
+          input.starts.subscribe(function(position) {
+            _this.lastMousePosition = position;
+            // 小爆裂，增加趣味
+            for (var i = 0; i < 3; i++) {
+              _this.createRandomSqwig(true);
+            }
+          });
+
+          input.ends.subscribe(function(position) {
+            // 鼠标松开时也产生一些波浪
+            for (var i = 0; i < 2; i++) {
+              _this.createRandomSqwig(true);
+            }
+          });
 
           if (location.pathname.match(/fullcpgrid/i)) {
             setInterval(function() { _this.burst(false); }, 1000);
@@ -822,8 +823,8 @@
           }
 
           var settings = {
-            x: fromMouse ? this.lastMousePosition.x : this.width / 2,
-            y: fromMouse ? this.lastMousePosition.y : this.height / 2,
+            x: fromMouse && this.lastMousePosition ? this.lastMousePosition.x : this.width / 2,
+            y: fromMouse && this.lastMousePosition ? this.lastMousePosition.y : this.height / 2,
             directionX: dx,
             directionY: dy,
             sections: 5 + Math.round(Math.random() * 15)
@@ -863,11 +864,11 @@
       var Input = /** @class */ (function() {
         function Input(element) {
           this.mouseEventToCoordinate = function(mouseEvent) {
-            mouseEvent.preventDefault();
+            // 不阻止默认事件，让点击正常触发
             return { x: mouseEvent.clientX, y: mouseEvent.clientY };
           };
           this.touchEventToCoordinate = function(touchEvent) {
-            touchEvent.preventDefault();
+            // 不阻止默认事件，让触摸正常触发
             return { x: touchEvent.changedTouches[0].clientX, y: touchEvent.changedTouches[0].clientY };
           };
 
@@ -893,7 +894,6 @@
         return Input;
       })();
 
-      // 启动 App
       var appContainer = document.getElementById('mouse-layer');
       var app = new App(appContainer);
     })();
