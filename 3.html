@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导航V2.1</title>
+    <link rel="icon" href="icons/Favicon32px.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="icons/Favicon32px.ico">
+    <link rel="apple-touch-icon" href="icons/Favicon32px.ico">
+    <style>
+        /* === 全局重置 === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        /* === 动态文字链画布（最上层） === */
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            pointer-events: none;
+            /* 让鼠标事件穿透，不影响导航点击 */;
+        }
+
+        /* === 导航容器 === */
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1200px;
+            min-width: 800px;
+        }
+
+        .category-title {
+            font-size: 20px;
+            color: #444;
+            margin: 30px 0 15px 5px;
+            font-weight: 600;
+            border-left: 4px solid #4f46e5;
+            padding-left: 10px;
+        }
+
+        .main-title {
+            text-align: center;
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px;
+        }
+
+        /* === 卡片基础 === */
+        .item {
+            position: relative;
+            background: white;
+            border-radius: 20px;
+            padding: 5px;
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s, background 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: default;
+            z-index: 1;
+            margin-bottom: 4px;
+        }
+
+        .item:hover {
+            transform: translateY(-3px);
+            background: #eef2ff;
+            z-index: 100;
+        }
+
+        .item img {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 1px;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .item .name {
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        /* --- 卡片内容容器（用于点击穿透） --- */
+        .card-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            pointer-events: none;   /* 让点击穿透到父容器 */
+        }
+        .card-content img {
+            pointer-events: none;   /* 确保图片也不拦截事件 */
+        }
+        .card-content .name {
+            pointer-events: none;
+        }
+
+        /* === 悬浮提示 tooltip === */
+        .item .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background: #2d2d2d;
+            color: #fff;
+            text-align: left;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            line-height: 1.6;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+            transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
+            z-index: 999999;
+            pointer-events: none;
+            min-width: 200px;
+            max-width: 280px;
+            width: max-content;
+            word-break: break-word;
+            white-space: normal;
+            margin-bottom: 8px;
+        }
+
+        .item .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 7px solid transparent;
+            border-top-color: #2d2d2d;
+        }
+
+        .item:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(-50%) translateY(-14px);
+        }
+
+        /* === 带弹出菜单的卡片 === */
+        .item.popup-card {
+            z-index: 10;
+            cursor: pointer;
+        }
+        .item.popup-card:hover {
+            z-index: 100;
+        }
+
+        /* 弹出菜单容器 */
+        .item.popup-card .popup-menu {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            left: 50%;
+            background: #ffffff;
+            color: #1e293b;
+            padding: 14px 18px;
+            border-radius: 20px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+            z-index: 9999999;
+            pointer-events: none;
+            min-width: 220px;
+            max-width: 580px;
+            width: max-content;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(2px);
+            transition: none;
+        }
+
+        /* 默认向上 */
+        .item.popup-card .popup-menu {
+            bottom: 100%;
+            transform: translateX(-50%) translateY(-8px);
+        }
+        /* 向下 */
+        .item.popup-card .popup-menu.drop-down {
+            bottom: auto;
+            top: 100%;
+            transform: translateX(-50%) translateY(8px);
+        }
+
+        /* 激活状态（显示） */
+        .item.popup-card.active .popup-menu {
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(-12px);
+        }
+        .item.popup-card.active .popup-menu.drop-down {
+            transform: translateX(-50%) translateY(12px);
+        }
+
+        /* 小三角 */
+        .item.popup-card .popup-menu::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 7px solid transparent;
+            border-top-color: #ffffff;
+        }
+        .item.popup-card .popup-menu.drop-down::after {
+            top: auto;
+            bottom: 100%;
+            border-top-color: transparent;
+            border-bottom-color: #ffffff;
+        }
+
+        /* 菜单内部网格 — 8列 */
+        .popup-menu .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 6px 8px;
+            align-items: center;
+            justify-items: center;
+        }
+
+        .popup-menu .menu-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            text-decoration: none;
+            color: #1e293b;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 2px;
+            border-radius: 12px;
+            transition: background 0.15s, transform 0.1s;
+            white-space: nowrap;
+            min-width: 44px;
+        }
+
+        .popup-menu .menu-item:hover {
+            background: #eef2ff;
+            transform: scale(1.05);
+        }
+
+        .popup-menu .menu-item img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .popup-menu .menu-item span {
+            pointer-events: none;
+            font-size: 10px;
+            line-height: 1.2;
+        }
+
+        .popup-menu .menu-label {
+            font-size: 12px;
+            color: #64748b;
+            letter-spacing: 0.3px;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #e9edf2;
+            text-align: center;
+            font-weight: 500;
+            grid-column: 1 / -1;
+        }
+
+        /* === 响应式 === */
+        .grid,
+        .container,
+        body {
+            overflow: visible;
+        }
+
+        @media (max-width: 860px) {
+            .container {
+                min-width: 0;
+            }
+            .grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .item .tooltip {
+                min-width: 160px;
+                max-width: 220px;
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+            .item.popup-card .popup-menu {
+                min-width: 180px;
+                max-width: 440px;
+                padding: 12px 14px;
+            }
+            .popup-menu .menu-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .popup-menu .menu-item {
+                font-size: 10px;
+                padding: 4px 2px;
+            }
+            .popup-menu .menu-item img {
+                width: 24px;
+                height: 24px;
+            }
+        }
+        @media (max-width: 480px) {
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .item .tooltip {
+                min-width: 140px;
+                max-width: 180px;
+                font-size: 11px;
+                padding: 6px 10px;
+            }
+            .item.popup-card .popup-menu {
+                min-width: 160px;
+                max-width: 320px;
+                padding: 10px 10px;
+            }
+            .popup-menu .menu-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 4px 6px;
+            }
+            .popup-menu .menu-item {
+                font-size: 9px;
+                padding: 2px 2px;
+            }
+            .popup-menu .menu-item img {
+                width: 20px;
+                height: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ===== 动态文字链画布（最上层） ===== -->
+    <canvas id="canvas"></canvas>
+
+    <div class="container">
+        <h2 class="main-title">大造业务 常用导航</h2>
+
+        <!-- 开发成交 -->
+        <div class="category-title" style="margin-top: 10px;">开发订单</div>
+        <div class="grid">
+
+
+            <a class="item" href="https://google.com" target="_blank">
+                <img src="icons/Google.svg" alt="">
+                <div class="name">Google</div>
+                <div class="tooltip">Google 全球最大的搜索引擎，提供网页、图片、地图、学术等全方位搜索</div>
+            </a>
+            <a class="item" href="https://sourcing.alibaba.com/" target="_blank">
+                <img src="icons/RFQ市场.svg" alt="">
+                <div class="name">国际站RFQ</div>
+                <div class="tooltip">国际站RFQ市场</div>
+            </a>
+            <a class="item" href="https://membercenter.made-in-china.com/quotationmanage.do?xcase=receivedRfq" target="_blank">
+                <img src="icons/制造网RFQ.svg" alt="">
+                <div class="name">制造网RFQ</div>
+                <div class="tooltip">制造网RFQ市场</div>
+            </a>
+            <a class="item" href="https://sitehd.joinf.com/#/dashboard/index" target="_blank">
+                <img src="icons/富通天下.png" alt="">
+                <div class="name">富通后台</div>
+                <div class="tooltip">富通天下管理后台，企业级业务管理和运营数据监控平台</div>
+            </a>
+            <a class="item" href="https://et.topease.net/login?product=gt" target="_blank">
+                <img src="icons/topease.png" alt="">
+                <div class="name">特易资讯</div>
+                <div class="tooltip">特易资讯外贸数据平台，提供全球贸易数据和客户分析服务</div>
+            </a>
+            <a class="item" href="https://flying.kingtrans.cn/new_index.jsp?retry_reason=PASSWORD" target="_blank">
+                <img src="icons/飞航.png" alt="">
+                <div class="name">飞航</div>
+                <div class="tooltip">飞航物流管理系统，提供国际货运跟踪和物流管理服务</div>
+            </a>
+            <a class="item" href="https://hsbianma.com/" target="_blank">
+                <img src="icons/HS海关编码.svg" alt="">
+                <div class="name">HS海关编码</div>
+                <div class="tooltip">HS海关编码查询工具，快速查找商品对应的海关编码和税率信息</div>
+            </a>
+            <a class="item" href="https://www.17track.net/zh-cn" target="_blank">
+                <img src="icons/17track.png" alt="">
+                <div class="name">17TRACK</div>
+                <div class="tooltip">17TRACK国际包裹查询工具，支持全球多家物流公司的包裹追踪</div>
+            </a>
+
+        </div>
+
+        <!-- 客情维护 -->
+        <div class="category-title">社媒触达</div>
+        <div class="grid">
+            <a class="item" href="https://web.whatsapp.com/" target="_blank">
+                <img src="icons/WhatsApp.svg" alt="WhatsApp">
+                <div class="name">WhatsApp</div>
+                <div class="tooltip">WhatsApp即时通讯应用，全球用户量最大的消息应用，端到端加密</div>
+            </a>
+            <a class="item" href="https://www.linkedin.com/" target="_blank">
+                <img src="icons/Linkedin.svg" alt="Linkedin">
+                <div class="name">Linkedin</div>
+                <div class="tooltip">LinkedIn职场社交平台，全球最大的职业社交网络，招聘和职业发展社区</div>
+            </a>
+            <a class="item" href="https://studio.youtube.com/" target="_blank">
+                <img src="icons/GoogleYouTube.svg" alt="YouTube Studio">
+                <div class="name">YouTube Studio</div>
+                <div class="tooltip">YouTube创作者工作室，视频数据分析、内容管理、收益统计一站式后台</div>
+            </a>
+            <a class="item" href="https://www.facebook.com/profile.php?id=61574767364571" target="_blank">
+                <img src="icons/Facebook.svg" alt="Facebook">
+                <div class="name">Facebook</div>
+                <div class="tooltip">全球最大的社交网络平台，连接朋友、家人和社区，分享生活动态</div>
+            </a>
+            <a class="item" href="https://www.instagram.com/" target="_blank">
+                <img src="icons/Instagram.svg" alt="Instagram">
+                <div class="name">Instagram</div>
+                <div class="tooltip">Instagram图片社交平台，以视觉内容为核心，支持照片、短视频和直播</div>
+            </a>
+            <a class="item" href="https://x.com/home" target="_blank">
+                <img src="icons/X.svg" alt="X">
+                <div class="name">X</div>
+                <div class="tooltip">Twitter X社交平台，实时信息发布和讨论社区，全球新闻和热点聚集地</div>
+            </a>
+            <a class="item" href="https://www.tiktok.com/@Dazaocnc" target="_blank">
+                <img src="icons/TikTok.svg" alt="TikTok">
+                <div class="name">TikTok</div>
+                <div class="tooltip">TikTok国际版短视频平台，全球最受欢迎的短视频社交应用，覆盖150+国家</div>
+            </a>
+            <a class="item" href="https://vk.com/club228030395" target="_blank">
+                <img src="icons/VK.svg" alt="VK">
+                <div class="name">VK</div>
+                <div class="tooltip">VK俄罗斯最大社交平台，功能类似Facebook，在东欧地区拥有广泛用户</div>
+            </a>
+        </div>
+
+
+        <!-- 合集 -->
+        <div class="category-title">品类合集</div>
+        <div class="grid">
+
+            <!-- Google 卡片（弹出菜单） -->
+            <div class="item popup-card" id="googleCard"
+                 role="button"
+                 tabindex="0"
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-label="Google 全家桶菜单">
+                <!-- 内容区：视觉展示，事件穿透 -->
+                <div class="card-content">
+                    <img src="icons/Google.svg" alt="Google">
+                    <div class="name">Google</div>
+                </div>
+                <div class="tooltip">Google 全球最大的搜索引擎，提供网页、图片、地图、学术等全方位搜索</div>
+                <div class="popup-menu" id="googleMenu" role="menu"></div>
+            </div>
+
+            <!-- Ai合集卡片（弹出菜单） -->
+            <div class="item popup-card" id="aihejiCard"
+                 role="button"
+                 tabindex="0"
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-label="Ai合集">
+                <!-- 内容区：视觉展示，事件穿透 -->
+                <div class="card-content">
+                    <img src="icons/ChatGPT.svg" alt="Google">
+                    <div class="name">Ai合集</div>
+                </div>
+                <div class="tooltip">各类顶尖AI和智能体赋能，提升效率。</div>
+                <div class="popup-menu" id="aihejiMenu" role="menu"></div>
+            </div>
+
+            <!-- 公司店铺卡片（弹出菜单） -->
+            <div class="item popup-card" id="dazaoCard"
+                 role="button"
+                 tabindex="0"
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-label="公司店铺">
+                <!-- 内容区：视觉展示，事件穿透 -->
+                <div class="card-content">
+                    <img src="icons/阿里国际站.svg" alt="Google">
+                    <div class="name">公司店铺</div>
+                </div>
+                <div class="tooltip">大造、双亿、嘉盈华 店铺。</div>
+                <div class="popup-menu" id="dazaoMenu" role="menu"></div>
+            </div>
+            
+            <!-- 运维卡片（弹出菜单） -->
+            <div class="item popup-card" id="yunweiCard"
+                 role="button"
+                 tabindex="0"
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-label="运维工具集">
+                <!-- 内容区：视觉展示，事件穿透 -->
+                <div class="card-content">
+                    <img src="icons/运维.svg" alt="运维">
+                    <div class="name">运维</div>
+                </div>
+                <div class="tooltip">各类运维工具</div>
+                <div class="popup-menu" id="yunweiMenu" role="menu"></div>
+            </div>
+            
+            <!-- 百度 卡片（弹出菜单） -->
+            <div class="item popup-card" id="baiduCard"
+                 role="button"
+                 tabindex="0"
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-label="百度 全家桶菜单">
+                <!-- 内容区：视觉展示，事件穿透 -->
+                <div class="card-content">
+                    <img src="icons/百度.svg" alt="百度">
+                    <div class="name">百度</div>
+                </div>
+                <div class="tooltip">Google 全球最大的搜索引擎，提供网页、图片、地图、学术等全方位搜索</div>
+                <div class="popup-menu" id="baiduMenu" role="menu"></div>
+            </div>
+
+            <!-- 小工具卡片（弹出菜单） -->
+            <div class="item popup-card" id="gongjuCard"
+                 role="button"
+                 tabindex="0"
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-label="各类小工具">
+                <!-- 内容区：视觉展示，事件穿透 -->
+                <div class="card-content">
+                    <img src="icons/Hdaxiaoxie.svg" alt="Google">
+                    <div class="name">实用小工具</div>
+                </div>
+                <div class="tooltip">在线实用小工具：字符统计、大小写转换、简繁转换。</div>
+                <div class="popup-menu" id="gongjuMenu" role="menu"></div>
+            </div>
+
+    </div>
+
+    <script>
+        // ============================================================
+        // 🚀 通用弹出菜单管理器（无过渡，直接显示/隐藏）
+        // ============================================================
+        function createPopupMenu(cardId, menuId, menuTitle, items) {
+            const card = document.getElementById(cardId);
+            const menu = document.getElementById(menuId);
+            if (!card || !menu) return;
+
+            // 生成菜单内容
+            let html = `<div class="menu-grid"><div class="menu-label">✦ ${menuTitle}</div>`;
+            items.forEach(item => {
+                html += `
+                        <a class="menu-item" href="${item.url}" target="_blank" role="menuitem">
+                            <img src="${item.icon}" alt="${item.name}">
+                            <span>${item.name}</span>
+                        </a>
+                    `;
+            });
+            html += `</div>`;
+            menu.innerHTML = html;
+
+            // 点击卡片切换
+            card.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const isActive = this.classList.contains('active');
+
+                if (isActive) {
+                    this.classList.remove('active');
+                    menu.classList.remove('drop-down');
+                    menu.style.visibility = '';
+                    menu.style.opacity = '';
+                    // 更新 ARIA 状态
+                    this.setAttribute('aria-expanded', 'false');
+                } else {
+                    // 打开：计算方向
+                    menu.classList.remove('drop-down');
+                    const rect = this.getBoundingClientRect();
+                    const menuHeight = 240;
+                    const spaceAbove = rect.top;
+                    const spaceBelow = window.innerHeight - rect.bottom;
+                    if (spaceAbove < menuHeight && spaceBelow > spaceAbove) {
+                        menu.classList.add('drop-down');
+                    }
+                    this.classList.add('active');
+                    this.setAttribute('aria-expanded', 'true');
+                }
+            });
+
+            // 点击页面其他地方关闭
+            document.addEventListener('click', function(e) {
+                if (!card.contains(e.target)) {
+                    card.classList.remove('active');
+                    menu.classList.remove('drop-down');
+                    card.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            // 菜单内点击链接后关闭
+            menu.addEventListener('click', function(e) {
+                if (e.target.closest('a')) {
+                    setTimeout(() => {
+                        card.classList.remove('active');
+                        menu.classList.remove('drop-down');
+                        card.setAttribute('aria-expanded', 'false');
+                    }, 80);
+                }
+                e.stopPropagation();
+            });
+
+            // 窗口resize重新计算方向
+            window.addEventListener('resize', function() {
+                if (card.classList.contains('active')) {
+                    menu.classList.remove('drop-down');
+                    const rect = card.getBoundingClientRect();
+                    const menuHeight = 240;
+                    const spaceAbove = rect.top;
+                    const spaceBelow = window.innerHeight - rect.bottom;
+                    if (spaceAbove < menuHeight && spaceBelow > spaceAbove) {
+                        menu.classList.add('drop-down');
+                    }
+                }
+            });
+
+            // 键盘支持：Enter/Space 触发点击
+            card.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.click();
+                }
+            });
+        }
+
+        // ============================================================
+        // 初始化 Google 菜单
+        // ============================================================
+       
+createPopupMenu('googleCard', 'googleMenu', 'Google 全家桶', [
+            { name: '搜索', url: 'https://www.google.com/webhp?hl=zh', icon: 'icons/Google.svg' },
+            { name: 'Gemini', url: 'https://gemini.google.com/', icon: 'icons/GoogleGemini.svg' },
+            { name: 'Gmail', url: 'https://mail.google.com/', icon: 'icons/GoogleGmail.svg' },
+            { name: 'Translate', url: 'https://translate.google.com/', icon: 'icons/GoogleTranslate.svg' },
+            { name: 'Maps', url: 'https://www.google.com/maps/', icon: 'icons/GoogleMaps.svg' },
+            { name: 'YouTube', url: 'https://www.youtube.com/', icon: 'icons/GoogleYouTube.svg' },
+            { name: 'Drive', url: 'https://drive.google.com/', icon: 'icons/GoogleDrive.svg' },
+            { name: 'Trends', url: 'https://trends.google.com/home', icon: 'icons/GoogleTrends.svg' },
+            { name: 'Calendar', url: 'https://calendar.google.com/', icon: 'icons/GoogleCalendar.svg' },
+            { name: 'Meet', url: 'https://meet.google.com/', icon: 'icons/GoogleMeet.svg' },
+            { name: 'Authenticator', url: 'https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2', icon: 'icons/GoogleAuthenticator.svg' },
+            { name: 'News', url: 'https://news.google.com/', icon: 'icons/GoogleNews.svg' },
+            { name: 'AI Studio', url: 'https://aistudio.google.com/', icon: 'icons/GoogleAIStudio.svg' },
+            { name: 'Ads', url: 'https://ads.google.com/', icon: 'icons/GoogleAds.svg' },
+            { name: 'Earth', url: 'https://earth.google.com/web/', icon: 'icons/GoogleEarth.svg' },
+            { name: 'Chrome', url: 'https://www.google.cn/chrome/index.html', icon: 'icons/GoogleChrome.svg' },
+        ]);
+
+createPopupMenu('aihejiCard', 'aihejiMenu', 'Ai合集', [
+{ name: 'ChatGPT', url: 'http://www.chat.openai.com/', icon: 'icons/ChatGPT.svg' },
+{ name: 'Gemini', url: 'https://gemini.google.com/', icon: 'icons/GoogleGemini.svg' },
+{ name: 'DeepSeek', url: 'https://chat.deepseek.com/', icon: 'icons/DeepSeek.svg' },
+{ name: 'Google AI Studio', url: 'https://aistudio.google.com/', icon: 'icons/GoogleAIStudio.svg' },
+{ name: '豆包', url: 'https://www.doubao.com/chat/', icon: 'icons/豆包.png' },
+{ name: '元宝', url: 'https://yuanbao.tencent.com/chat/', icon: 'icons/元宝.svg' },
+{ name: 'Copilot', url: 'https://copilot.microsoft.com/', icon: 'icons/Copilot.svg' },
+{ name: '文心', url: 'https://yiyan.baidu.com/', icon: 'icons/百度文心.svg' },
+{ name: '千问', url: 'https://www.qianwen.com/', icon: 'icons/千问.svg' },
+{ name: 'Suno.cn', url: 'https://www.suno.cn/home/#/create', icon: 'icons/Sunocn.svg' },
+{ name: 'Suno.com', url: 'https://www.suno.cn/home/#/create', icon: 'icons/Sunocom.svg' },
+{ name: '即梦', url: 'https://jimeng.jianying.com/', icon: 'icons/即梦.svg' },
+{ name: 'n8n', url: 'https://n8n.srv1692805.hstgr.cloud/home/workflows', icon: 'icons/n8n.svg' },
+{ name: 'WorkBuddy', url: 'https://copilot.tencent.com/work/', icon: 'icons/WorkBuddy.png' },
+{ name: 'Coze', url: 'https://www.coze.cn/overview', icon: 'icons/扣子.png' },
+{ name: 'AccioWork', url: 'https://www.accio.com/invite-work?sId=TOzyLbBwDdC2eBIaxGc3rw%3D%3D&ic=IC418070373362&tenant=accio&src=p_referral_IC418070373362&return_url=https%3A%2F%2Fwww.accio.com%2Fwork%2F', icon: 'icons/阿里AccioWork.svg' },
+]);
+
+createPopupMenu('dazaoCard', 'dazaoMenu', '公司店铺', [
+    { name: 'DAZAO', url: 'https://jyhcn.en.alibaba.com/', icon: 'icons/阿里国际站.svg' },
+    { name: 'DAZAO', url: 'https://dazaocn.1688.com/', icon: 'icons/阿里1688.svg' },
+    { name: 'DAZAO', url: 'https://dazao-machinery.en.made-in-china.com/', icon: 'icons/制造网.svg' },
+    { name: 'dazaocn.com', url: 'https://www.dazaocn.com/', icon: 'icons/公司DAZAO.svg' },
+    { name: 'machining.com', url: 'https://www.dazaocncmachining.com/', icon: 'icons/公司DAZAO.svg' },
+    { name: 'BKD', url: 'https://moldmanufacturing.en.alibaba.com/', icon: 'icons/阿里国际站.svg' },
+    { name: 'BKD', url: 'https://shuangyicn.1688.com/', icon: 'icons/阿里1688.svg' },
+    { name: 'BKD', url: 'https://bokaidi.cn/', icon: 'icons/公司BKD.svg' },
+]);
+
+createPopupMenu('yunweiCard', 'yunweiMenu', '运维弹出', [
+{ name: '全球Ping', url: 'https://ping.chinaz.com/', icon: 'icons/站长之家.svg' },
+{ name: 'Google Trends', url: 'https://trends.google.com/home', icon: 'icons/GoogleTrends.svg' },
+{ name: 'SEMRUSH', url: 'https://dash.3ue.co/#/register', icon: 'icons/semrush.svg' },
+{ name: 'AnswerThePublic', url: 'https://answerthepublic.com/en/reports/aef082cf-3116-445d-9985-10e6d9eb5f29', icon: 'icons/AnswerThePublic.svg' },
+{ name: 'SimilarSites', url: 'https://www.similarsites.com/', icon: 'icons/SimilarSites.svg' },
+{ name: '百度指数', url: 'https://index.baidu.com/v2/index.html#/', icon: 'icons/百度指数.svg' },
+{ name: '微信指数', url: 'https://wximg.qq.com/mmsearch/h5/dist/wxindex/logo_url.png#/', icon: 'icons/微信指数.svg' },
+{ name: '抖音指数', url: 'https://creator.douyin.com/creator-micro/creator-count/arithmetic-index', icon: 'icons/抖音指数.svg' },
+{ name: 'GitHub', url: 'https://github.com/', icon: 'icons/GitHub.svg' },
+{ name: 'CodePen', url: 'https://codepen.io/', icon: 'icons/CodePen.svg' },
+{ name: 'Cloudflare', url: 'https://dash.cloudflare.com/', icon: 'icons/Cloudflare.svg' },
+{ name: '阿里云', url: 'https://www.aliyun.com/', icon: 'icons/阿里云.svg' },
+{ name: 'Hostinger', url: 'https://www.hostinger.com/', icon: 'icons/Hostinger.svg' },
+{ name: 'BandwagonHost', url: 'https://bandwagonhost.com/', icon: 'icons/BandwagonHost.png' },
+]);
+        
+createPopupMenu('baiduCard', 'baiduMenu', '百度弹出', [
+    { name: '搜索', url: 'https://www.baidu.com', icon: 'icons/百度.svg' },
+    { name: '文心', url: 'https://yiyan.baidu.com/', icon: 'icons/百度文心.svg' },
+    { name: '地图', url: 'https://map.baidu.com', icon: 'icons/百度地图.svg' },
+    { name: '网盘', url: 'https://pan.baidu.com', icon: 'icons/百度网盘.svg' },
+    { name: '爱奇艺', url: 'https://image.baidu.com', icon: 'icons/百度爱奇艺.png' },
+    { name: '爱企查', url: 'https://aiqicha.baidu.com/', icon: 'icons/百度爱企查.png' },
+    { name: '百家号', url: 'https://baijiahao.baidu.com/', icon: 'icons/百度百家号.svg' },
+    { name: '百科', url: 'https://baike.baidu.com', icon: 'icons/百度百科.png' },
+]);
+        
+createPopupMenu('gongjuCard', 'gongjuMenu', '在线小工具', [
+    { name: '全球节假日', url: 'https://www.timeanddate.com/', icon: 'icons/timeanddate.svg' },
+    { name: '手机伪装度', url: 'https://whoer.net/zh', icon: 'icons/whoer.png' },
+    { name: '字符统计', url: 'Hzifutongji.html', icon: 'icons/Hzifutongji.svg' },
+    { name: '大小写转换', url: 'Hdaxiaoxie.html', icon: 'icons/Hdaxiaoxie.svg' },
+    { name: '花字母转换', url: 'Hhuazimu.html', icon: 'icons/Hhuazimu.svg' },
+    { name: '特殊符号大全', url: 'Hfuhaodaquan.html', icon: 'icons/Hfuhaodaquan.svg' },
+    { name: '繁体字转换', url: 'Hfantizi.html', icon: 'icons/Hfantizi.svg' },
+    { name: '查询ip信息', url: 'Hip.html', icon: 'icons/Hip.svg' },
+    { name: '随机抽奖', url: 'Hchoujiang.html', icon: 'icons/Hchoujiang.svg' },
+]);
+
+        // ============================================================
+        // ===== 动态文字链交互（最上层） =====
+        // ============================================================
+        /*--------------------
+        Utils
+        --------------------*/
+        const scale = (v, x1, y1, x2, y2) => (v - x1) * (y2 - x2) / (y1 - x1) + x2;
+        const lerp = (a, b, t) => a + t * (b - a)
+
+        /*--------------------
+        Settings
+        --------------------*/
+        const settings = {
+            backgroundColor: '#fff',
+            letters: 'FOLLOW YOUR DREAM',
+            minDistance: 14,
+            resetTimer: 2000,
+        }
+
+        /*--------------------
+        Setup
+        --------------------*/
+        const canvas = document.getElementById('canvas')
+        const ctx = canvas.getContext('2d')
+        const win = {
+            w: window.innerWidth,
+            h: window.innerHeight
+        }
+        const mouse = {
+            x: win.w / 2,
+            y: win.h / 2,
+        }
+        let time = 0
+        const devicePixelRatio = window.devicePixelRatio || 1
+        const chain = []
+        const letters = settings.letters.split('').reverse()
+        for (let i = 0; i < letters.length; i++) {
+            chain.push({ letter: letters[i], x: 0, y: 0 })
+        }
+
+
+        /*--------------------
+        Resize
+        --------------------*/
+        const onResize = () => {
+            win.w = window.innerWidth
+            win.h = window.innerHeight
+            canvas.width = win.w * devicePixelRatio
+            canvas.height = win.h * devicePixelRatio
+            canvas.style.width = `${win.w}px`
+            canvas.style.height = `${win.h}px`
+            ctx.scale(devicePixelRatio, devicePixelRatio)
+        }
+        onResize()
+
+
+        /*--------------------
+        MouseMove
+        --------------------*/
+        let isMouseMoving = false
+        let timeoutID
+        const onMouseMove = (e) => {
+            isMouseMoving = true
+            mouse.x = e.touches ? e.touches[0].clientX : e.clientX
+            mouse.y = e.touches ? e.touches[0].clientY : e.clientY
+
+            chain[0].x = mouse.x
+            chain[0].y = mouse.y
+
+            clearTimeout(timeoutID)
+            timeoutID = setTimeout(() => {
+                isMouseMoving = false
+            }, settings.resetTimer)
+        }
+
+
+        /*--------------------
+        Listeners
+        --------------------*/
+        window.addEventListener('resize', onResize)
+        window.addEventListener('mousemove', onMouseMove)
+        window.addEventListener('touchmove', onMouseMove)
+
+
+        /*--------------------
+        Clear
+        --------------------*/
+        const clear = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
+        }
+
+
+        /*--------------------
+        Draw
+        --------------------*/
+        const draw = () => {
+            clear()
+
+            chain.forEach((link, index) => {
+                if (isMouseMoving) {
+                    ctx.fillText(link.letter, link.x - settings.minDistance, link.y)
+
+                    if (index > 0) {
+                        let prevLink = chain[index - 1]
+                        let dx = link.x - prevLink.x
+                        let dy = link.y - prevLink.y
+                        let distance = Math.sqrt(dx * dx + dy * dy)
+
+                        if (distance > settings.minDistance) {
+                            let ratio = settings.minDistance / distance
+                            link.x = lerp(link.x, prevLink.x + dx * ratio, .4)
+                            link.y = lerp(link.y, prevLink.y + dy * ratio, .4)
+                        }
+                    }
+                } else {
+                    const theta = scale(index, 0, chain.length, .3, .06)
+
+                    link.x = lerp(link.x, mouse.x - (index + 1) * settings.minDistance, theta)
+                    link.y = lerp(link.y, mouse.y + Math.sin(time * .3 + index * .5) * 3, theta)
+                    ctx.fillText(link.letter, link.x, link.y)
+                }
+            })
+        }
+
+
+        /*--------------------
+        Animate
+        --------------------*/
+        const animate = () => {
+            time += 0.1
+            clear()
+            requestAnimationFrame(animate)
+
+            draw()
+        }
+        animate()
+    </script>
+</body>
+</html>
