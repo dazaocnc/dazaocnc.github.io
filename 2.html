@@ -440,7 +440,7 @@
 
 
         <!-- 合集 -->
-        <div class="category-title">全家桶</div>
+        <div class="category-title">品类合集</div>
         <div class="grid">
 
             <!-- Google 卡片（弹出菜单） -->
@@ -457,22 +457,6 @@
                 </div>
                 <div class="tooltip">Google 全球最大的搜索引擎，提供网页、图片、地图、学术等全方位搜索</div>
                 <div class="popup-menu" id="googleMenu" role="menu"></div>
-            </div>
-
-            <!-- 百度 卡片（弹出菜单） -->
-            <div class="item popup-card" id="baiduCard"
-                 role="button"
-                 tabindex="0"
-                 aria-haspopup="true"
-                 aria-expanded="false"
-                 aria-label="百度 全家桶菜单">
-                <!-- 内容区：视觉展示，事件穿透 -->
-                <div class="card-content">
-                    <img src="icons/百度.svg" alt="百度">
-                    <div class="name">百度</div>
-                </div>
-                <div class="tooltip">Google 全球最大的搜索引擎，提供网页、图片、地图、学术等全方位搜索</div>
-                <div class="popup-menu" id="baiduMenu" role="menu"></div>
             </div>
 
             <!-- Ai合集卡片（弹出菜单） -->
@@ -506,6 +490,38 @@
                 <div class="tooltip">大造、双亿、嘉盈华 店铺。</div>
                 <div class="popup-menu" id="dazaoMenu" role="menu"></div>
             </div>
+            
+            <!-- 运维卡片（弹出菜单） -->
+            <div class="item popup-card" id="yunweiCard"
+                 role="button"
+                 tabindex="0"
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-label="运维工具集">
+                <!-- 内容区：视觉展示，事件穿透 -->
+                <div class="card-content">
+                    <img src="icons/运维.svg" alt="运维">
+                    <div class="name">运维</div>
+                </div>
+                <div class="tooltip">各类运维工具</div>
+                <div class="popup-menu" id="yunweiMenu" role="menu"></div>
+            </div>
+            
+            <!-- 百度 卡片（弹出菜单） -->
+            <div class="item popup-card" id="baiduCard"
+                 role="button"
+                 tabindex="0"
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-label="百度 全家桶菜单">
+                <!-- 内容区：视觉展示，事件穿透 -->
+                <div class="card-content">
+                    <img src="icons/百度.svg" alt="百度">
+                    <div class="name">百度</div>
+                </div>
+                <div class="tooltip">Google 全球最大的搜索引擎，提供网页、图片、地图、学术等全方位搜索</div>
+                <div class="popup-menu" id="baiduMenu" role="menu"></div>
+            </div>
 
             <!-- 小工具卡片（弹出菜单） -->
             <div class="item popup-card" id="gongjuCard"
@@ -522,7 +538,6 @@
                 <div class="tooltip">在线实用小工具：字符统计、大小写转换、简繁转换。</div>
                 <div class="popup-menu" id="gongjuMenu" role="menu"></div>
             </div>
-
 
     </div>
 
@@ -622,17 +637,7 @@
         // ============================================================
         // 初始化 Google 菜单
         // ============================================================
-createPopupMenu('baiduCard', 'baiduMenu', '百度弹出', [
-    { name: '搜索', url: 'https://www.baidu.com', icon: 'icons/百度.svg' },
-    { name: '文心', url: 'https://yiyan.baidu.com/', icon: 'icons/百度文心.svg' },
-    { name: '地图', url: 'https://map.baidu.com', icon: 'icons/百度地图.svg' },
-    { name: '网盘', url: 'https://pan.baidu.com', icon: 'icons/百度网盘.svg' },
-    { name: '爱奇艺', url: 'https://image.baidu.com', icon: 'icons/百度爱奇艺.png' },
-    { name: '爱企查', url: 'https://aiqicha.baidu.com/', icon: 'icons/百度爱企查.png' },
-    { name: '百家号', url: 'https://baijiahao.baidu.com/', icon: 'icons/百度百家号.svg' },
-    { name: '百科', url: 'https://baike.baidu.com', icon: 'icons/百度百科.png' },
-]);
-        
+       
 createPopupMenu('googleCard', 'googleMenu', 'Google 全家桶', [
             { name: '搜索', url: 'https://www.google.com/webhp?hl=zh', icon: 'icons/Google.svg' },
             { name: 'Gemini', url: 'https://gemini.google.com/', icon: 'icons/GoogleGemini.svg' },
@@ -653,15 +658,15 @@ createPopupMenu('googleCard', 'googleMenu', 'Google 全家桶', [
         ]);
 
 createPopupMenu('aihejiCard', 'aihejiMenu', 'Ai合集', [
+{ name: 'ChatGPT', url: 'http://www.chat.openai.com/', icon: 'icons/ChatGPT.svg' },
 { name: 'Gemini', url: 'https://gemini.google.com/', icon: 'icons/GoogleGemini.svg' },
+{ name: 'DeepSeek', url: 'https://chat.deepseek.com/', icon: 'icons/DeepSeek.svg' },
 { name: 'Google AI Studio', url: 'https://aistudio.google.com/', icon: 'icons/GoogleAIStudio.svg' },
 { name: '豆包', url: 'https://www.doubao.com/chat/', icon: 'icons/豆包.png' },
-{ name: 'DeepSeek', url: 'https://chat.deepseek.com/', icon: 'icons/DeepSeek.svg' },
 { name: '元宝', url: 'https://yuanbao.tencent.com/chat/', icon: 'icons/元宝.svg' },
 { name: 'Copilot', url: 'https://copilot.microsoft.com/', icon: 'icons/Copilot.svg' },
 { name: '文心', url: 'https://yiyan.baidu.com/', icon: 'icons/百度文心.svg' },
 { name: '千问', url: 'https://www.qianwen.com/', icon: 'icons/千问.svg' },
-{ name: 'ChatGPT', url: 'http://www.chat.openai.com/', icon: 'icons/ChatGPT.svg' },
 { name: 'Suno.cn', url: 'https://www.suno.cn/home/#/create', icon: 'icons/Sunocn.svg' },
 { name: 'Suno.com', url: 'https://www.suno.cn/home/#/create', icon: 'icons/Sunocom.svg' },
 { name: '即梦', url: 'https://jimeng.jianying.com/', icon: 'icons/即梦.svg' },
@@ -682,10 +687,35 @@ createPopupMenu('dazaoCard', 'dazaoMenu', '公司店铺', [
     { name: 'BKD', url: 'https://bokaidi.cn/', icon: 'icons/公司BKD.svg' },
 ]);
 
+createPopupMenu('yunweiCard', 'yunweiMenu', '运维弹出', [
+{ name: 'GitHub', url: 'https://github.com/', icon: 'icons/GitHub.svg' },
+{ name: 'CodePen', url: 'https://codepen.io/', icon: 'icons/CodePen.svg' },
+{ name: 'Hostinger', url: 'https://www.hostinger.com/', icon: 'icons/Hostinger.svg' },
+{ name: 'BandwagonHost', url: 'https://bandwagonhost.com/', icon: 'icons/BandwagonHost.svg' },
+{ name: '全球Ping', url: 'https://ping.chinaz.com/', icon: 'icons/站长之家.svg' },
+{ name: 'Google Trends', url: 'https://trends.google.com/home', icon: 'icons/GoogleTrends.svg' },
+{ name: 'SEMRUSH', url: 'https://dash.3ue.co/#/register', icon: 'icons/semrush.svg' },
+{ name: 'AnswerThePublic', url: 'https://answerthepublic.com/en/reports/aef082cf-3116-445d-9985-10e6d9eb5f29', icon: 'icons/AnswerThePublic.svg' },
+{ name: 'SimilarSites', url: 'https://www.similarsites.com/', icon: 'icons/SimilarSites.svg' },
+{ name: '百度指数', url: 'https://index.baidu.com/v2/index.html#/', icon: 'icons/百度指数.svg' },
+{ name: '微信指数', url: 'https://wximg.qq.com/mmsearch/h5/dist/wxindex/logo_url.png#/', icon: 'icons/微信指数.svg' },
+{ name: '抖音指数', url: 'https://creator.douyin.com/creator-micro/creator-count/arithmetic-index', icon: 'icons/抖音指数.svg' },
+]);
+        
+createPopupMenu('baiduCard', 'baiduMenu', '百度弹出', [
+    { name: '搜索', url: 'https://www.baidu.com', icon: 'icons/百度.svg' },
+    { name: '文心', url: 'https://yiyan.baidu.com/', icon: 'icons/百度文心.svg' },
+    { name: '地图', url: 'https://map.baidu.com', icon: 'icons/百度地图.svg' },
+    { name: '网盘', url: 'https://pan.baidu.com', icon: 'icons/百度网盘.svg' },
+    { name: '爱奇艺', url: 'https://image.baidu.com', icon: 'icons/百度爱奇艺.png' },
+    { name: '爱企查', url: 'https://aiqicha.baidu.com/', icon: 'icons/百度爱企查.png' },
+    { name: '百家号', url: 'https://baijiahao.baidu.com/', icon: 'icons/百度百家号.svg' },
+    { name: '百科', url: 'https://baike.baidu.com', icon: 'icons/百度百科.png' },
+]);
+        
 createPopupMenu('gongjuCard', 'gongjuMenu', '在线小工具', [
     { name: '全球节假日', url: 'https://www.timeanddate.com/', icon: 'icons/timeanddate.svg' },
     { name: '手机伪装度', url: 'https://whoer.net/zh', icon: 'icons/whoer.png' },
-    { name: '全球Ping', url: 'https://ping.chinaz.com/', icon: 'icons/站长之家.svg' },
     { name: '字符统计', url: 'Hzifutongji.html', icon: 'icons/Hzifutongji.svg' },
     { name: '大小写转换', url: 'Hdaxiaoxie.html', icon: 'icons/Hdaxiaoxie.svg' },
     { name: '花字母转换', url: 'Hhuazimu.html', icon: 'icons/Hhuazimu.svg' },
