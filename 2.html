@@ -427,7 +427,7 @@
             </a>
             <a class="item" href="https://studio.youtube.com/" target="_blank">
                 <img src="icons/GoogleYouTube.svg" alt="YouTube Studio">
-                <div class="name">YouTube</div>
+                <div class="name">YouTube Studio</div>
                 <div class="tooltip">YouTube创作者工作室，视频数据分析、内容管理、收益统计一站式后台</div>
             </a>
             <a class="item" href="https://www.facebook.com/profile.php?id=61574767364571" target="_blank">
@@ -487,11 +487,27 @@
                  aria-label="Ai合集">
                 <!-- 内容区：视觉展示，事件穿透 -->
                 <div class="card-content">
-                    <img src="icons/Ai.svg" alt="Google">
+                    <img src="icons/ChatGPT.svg" alt="">
                     <div class="name">Ai合集</div>
                 </div>
                 <div class="tooltip">各类顶尖AI和智能体赋能，提升效率。</div>
                 <div class="popup-menu" id="aihejiMenu" role="menu"></div>
+            </div>
+
+            <!-- 会议卡片（弹出菜单） -->
+            <div class="item popup-card" id="huiyiCard"
+                 role="button"
+                 tabindex="0"
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-label="远程会议">
+                <!-- 内容区：视觉展示，事件穿透 -->
+                <div class="card-content">
+                    <img src="icons/远程会议.svg" alt="">
+                    <div class="name">远程会议</div>
+                </div>
+                <div class="tooltip">与客户可使用的远程会议的不同方式。</div>
+                <div class="popup-menu" id="huiyiMenu" role="menu"></div>
             </div>
 
             <!-- 公司店铺卡片（弹出菜单） -->
@@ -503,13 +519,13 @@
                  aria-label="公司店铺">
                 <!-- 内容区：视觉展示，事件穿透 -->
                 <div class="card-content">
-                    <img src="icons/阿里国际站.svg" alt="Google">
+                    <img src="icons/阿里国际站.svg" alt="">
                     <div class="name">公司店铺</div>
                 </div>
                 <div class="tooltip">大造、双亿、嘉盈华 店铺。</div>
                 <div class="popup-menu" id="dazaoMenu" role="menu"></div>
             </div>
-            
+
             <!-- 运维卡片（弹出菜单） -->
             <div class="item popup-card" id="yunweiCard"
                  role="button"
@@ -519,7 +535,7 @@
                  aria-label="运维工具集">
                 <!-- 内容区：视觉展示，事件穿透 -->
                 <div class="card-content">
-                    <img src="icons/运维.svg" alt="运维">
+                    <img src="icons/运维.svg" alt="">
                     <div class="name">运维</div>
                 </div>
                 <div class="tooltip">各类运维工具</div>
@@ -535,7 +551,7 @@
                  aria-label="百度 全家桶菜单">
                 <!-- 内容区：视觉展示，事件穿透 -->
                 <div class="card-content">
-                    <img src="icons/百度.svg" alt="百度">
+                    <img src="icons/百度.svg" alt="">
                     <div class="name">百度</div>
                 </div>
                 <div class="tooltip">Google 全球最大的搜索引擎，提供网页、图片、地图、学术等全方位搜索</div>
@@ -543,7 +559,7 @@
             </div>
 
             <!-- 小工具卡片（弹出菜单） -->
-            <div class="item popup-card" id="gongjuCard"
+            <div class="item popup-card" id="wenbenCard"
                  role="button"
                  tabindex="0"
                  aria-haspopup="true"
@@ -551,11 +567,11 @@
                  aria-label="各类小工具">
                 <!-- 内容区：视觉展示，事件穿透 -->
                 <div class="card-content">
-                    <img src="icons/Hdaxiaoxie.svg" alt="Google">
-                    <div class="name">实用小工具</div>
+                    <img src="icons/Hdaxiaoxie.svg" alt="">
+                    <div class="name">文本工具</div>
                 </div>
                 <div class="tooltip">在线实用小工具：字符统计、大小写转换、简繁转换。</div>
-                <div class="popup-menu" id="gongjuMenu" role="menu"></div>
+                <div class="popup-menu" id="wenbenMenu" role="menu"></div>
             </div>
 
     </div>
@@ -695,6 +711,13 @@ createPopupMenu('aihejiCard', 'aihejiMenu', 'Ai合集', [
 { name: 'AccioWork', url: 'https://www.accio.com/invite-work?sId=TOzyLbBwDdC2eBIaxGc3rw%3D%3D&ic=IC418070373362&tenant=accio&src=p_referral_IC418070373362&return_url=https%3A%2F%2Fwww.accio.com%2Fwork%2F', icon: 'icons/阿里AccioWork.svg' },
 ]);
 
+createPopupMenu('huiyiCard', 'huiyiMenu', '远程会议', [
+    { name: 'ZOOM', url: 'https://www.zoom.com/', icon: 'icons/Zoom.svg' },
+    { name: '微软 Teams', url: 'https://teams.live.com/free', icon: 'icons/MicrosoftTeams.svg' },
+    { name: '谷歌 Meet', url: 'https://meet.google.com/landing', icon: 'icons/GoogleMeet.svg' },
+    { name: '腾讯会议', url: 'https://meeting.tencent.com/', icon: 'icons/腾讯会议.svg' },
+]);
+
 createPopupMenu('dazaoCard', 'dazaoMenu', '公司店铺', [
     { name: 'DAZAO', url: 'https://jyhcn.en.alibaba.com/', icon: 'icons/阿里国际站.svg' },
     { name: 'DAZAO', url: 'https://dazaocn.1688.com/', icon: 'icons/阿里1688.svg' },
@@ -706,7 +729,7 @@ createPopupMenu('dazaoCard', 'dazaoMenu', '公司店铺', [
     { name: 'BKD', url: 'https://bokaidi.cn/', icon: 'icons/公司BKD.svg' },
 ]);
 
-createPopupMenu('yunweiCard', 'yunweiMenu', '运维弹出', [
+createPopupMenu('yunweiCard', 'yunweiMenu', '运维', [
 { name: '全球Ping', url: 'https://ping.chinaz.com/', icon: 'icons/站长之家.svg' },
 { name: 'Google Trends', url: 'https://trends.google.com/home', icon: 'icons/GoogleTrends.svg' },
 { name: 'SEMRUSH', url: 'https://dash.3ue.co/#/register', icon: 'icons/semrush.svg' },
@@ -721,9 +744,11 @@ createPopupMenu('yunweiCard', 'yunweiMenu', '运维弹出', [
 { name: '阿里云', url: 'https://www.aliyun.com/', icon: 'icons/阿里云.svg' },
 { name: 'Hostinger', url: 'https://www.hostinger.com/', icon: 'icons/Hostinger.svg' },
 { name: 'BandwagonHost', url: 'https://bandwagonhost.com/', icon: 'icons/BandwagonHost.png' },
+{ name: '手机伪装度', url: 'https://whoer.net/zh', icon: 'icons/whoer.png' },
+{ name: '全球节假日', url: 'https://www.timeanddate.com/', icon: 'icons/timeanddate.svg' },
 ]);
-        
-createPopupMenu('baiduCard', 'baiduMenu', '百度弹出', [
+
+createPopupMenu('baiduCard', 'baiduMenu', '百度', [
     { name: '搜索', url: 'https://www.baidu.com', icon: 'icons/百度.svg' },
     { name: '文心', url: 'https://yiyan.baidu.com/', icon: 'icons/百度文心.svg' },
     { name: '地图', url: 'https://map.baidu.com', icon: 'icons/百度地图.svg' },
@@ -734,9 +759,7 @@ createPopupMenu('baiduCard', 'baiduMenu', '百度弹出', [
     { name: '百科', url: 'https://baike.baidu.com', icon: 'icons/百度百科.png' },
 ]);
         
-createPopupMenu('gongjuCard', 'gongjuMenu', '在线小工具', [
-    { name: '全球节假日', url: 'https://www.timeanddate.com/', icon: 'icons/timeanddate.svg' },
-    { name: '手机伪装度', url: 'https://whoer.net/zh', icon: 'icons/whoer.png' },
+createPopupMenu('wenbenCard', 'wenbenMenu', '文本处理', [
     { name: '字符统计', url: 'Hzifutongji.html', icon: 'icons/Hzifutongji.svg' },
     { name: '大小写转换', url: 'Hdaxiaoxie.html', icon: 'icons/Hdaxiaoxie.svg' },
     { name: '花字母转换', url: 'Hhuazimu.html', icon: 'icons/Hhuazimu.svg' },
