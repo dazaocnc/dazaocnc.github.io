@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 25.3.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="图层_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 600 600" style="enable-background:new 0 0 600 600;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:none;}
+	.st1{fill-rule:evenodd;clip-rule:evenodd;fill:url(#SVGID_1_);}
+	.st2{fill-rule:evenodd;clip-rule:evenodd;fill:url(#SVGID_2_);}
+	.st3{fill-rule:evenodd;clip-rule:evenodd;fill:url(#SVGID_3_);}
+</style>
+<rect id="透明方底" class="st0" width="600" height="600"/>
+<linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="599" y1="302.1111" x2="192.2726" y2="302.1111" gradientTransform="matrix(1 0 0 -1 0 602)">
+	<stop  offset="0" style="stop-color:#0499FD"/>
+	<stop  offset="1" style="stop-color:#004DFF"/>
+</linearGradient>
+<path class="st1" d="M192.27,354.19l107.44,109.06l107-108.61l106.78,108.37l70-71.05c20.68-20.99,20.68-55.02,0-76.02l-69.32-70.37
+	L406.72,136.52L192.27,354.19z"/>
+<linearGradient id="SVGID_2_" gradientUnits="userSpaceOnUse" x1="-98.7181" y1="141.4296" x2="128.1665" y2="295.1497" gradientTransform="matrix(1 0 0 -1 0 602)">
+	<stop  offset="0" style="stop-color:#0038FF"/>
+	<stop  offset="1" style="stop-color:#045EFD"/>
+</linearGradient>
+<path class="st2" d="M84.83,245.58l-69.32,70.37c-20.68,20.99-20.68,55.02,0,76.02l69.78,70.82l107-108.6V136.52L84.83,245.58z"/>
+<linearGradient id="SVGID_3_" gradientUnits="userSpaceOnUse" x1="237.9873" y1="249.6152" x2="244.0966" y2="374.5161" gradientTransform="matrix(1 0 0 -1 0 602)">
+	<stop  offset="0" style="stop-color:#0000B8"/>
+	<stop  offset="1" style="stop-color:#043BFD"/>
+</linearGradient>
+<path class="st3" d="M192.27,354.19L299.5,245.36L192.27,136.52V354.19z"/>
+</svg>
