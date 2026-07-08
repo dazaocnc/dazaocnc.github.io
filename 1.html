@@ -47,7 +47,7 @@
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      padding: 40px 20px;
+      padding: 15px 20px;
       position: relative;
     }
 
@@ -68,12 +68,34 @@
       padding-left: 10px;
     }
 
-    .main-title {
-      text-align: center;
-      font-size: 28px;
-      color: #333;
-      margin-bottom: 20px;
-    }
+.main-title {   /* 导航页 区域设置 */
+  text-align: center;  /* 文字水平居中 */
+  font-size: 28px;  /* 字体大小 */
+  margin-bottom: 5px;  /* 导航页 标题文字下边框 */
+  animation: flagWave 3s ease-in-out infinite;  /* 旗帜飘动动画，3秒循环 */
+  width: 100%;  /* 占满父容器宽度 */
+  background: linear-gradient(90deg, #2d3436, #6c5ce7, #2d3436);  /* 深色渐变背景 */
+  background-size: 300% 100%;  /* 背景放大3倍，便于滑动 */
+  -webkit-background-clip: text;  /* 背景裁剪到文字 */
+  -webkit-text-fill-color: transparent;  /* 文字透明，显示背景 */
+}
+
+@keyframes flagWave {   /* 导航页 动效设置 */
+  0% { 
+    transform: rotate(-5deg);  /* 动画开始时：向左摆动5度 */
+    background-position: 0% 50%;  /* 渐变起始位置 */
+  }
+  50% { 
+    transform: rotate(5deg);  /* 动画一半：向右摆动5度 */
+    background-position: 100% 50%;  /* 渐变滑到右侧 */
+  }
+  100% { 
+    transform: rotate(-5deg);  /* 动画结束：回到向左摆动5度 */
+    background-position: 0% 50%;  /* 渐变回到起始位置 */
+  }
+}
+
+
 
     .grid {
       display: grid;
@@ -201,8 +223,8 @@
   <div class="container">
     <h2 class="main-title">谌祖宝 导航页</h2>
 
-    <!-- ===== 检索 & 信息 ===== -->
-    <div class="category-title" style="margin-top: 10px;">检索 & 信息</div>
+    <!-- ===== 信息 & 常用 ===== -->
+    <div class="category-title" style="margin-top: 10px;">信息 & 常用</div>
     <div class="grid">
       <a class="item" href="https://www.baidu.com" target="_blank">
         <img src="icons/百度.svg" alt="">
@@ -417,7 +439,7 @@
     </div>
 
     <!-- ===== 数据 & 运维 ===== -->
-    <div class="category-title">数据 & 分析</div>
+    <div class="category-title">数据 & 运维</div>
     <div class="grid">
       <a class="item" href="https://ping.chinaz.com/" target="_blank">
         <img src="icons/站长之家.svg" alt="">
@@ -502,7 +524,7 @@
     </div>
 
     <!-- ===== 文本 & 设计 ===== -->
-    <div class="category-title">实用 & 小工具</div>
+    <div class="category-title">文本 & 设计</div>
     <div class="grid">
       <a class="item" href="2.html" target="_blank">
         <img src="icons/H2.svg" alt="">
@@ -559,15 +581,11 @@
         <div class="name">CDNlogo</div>
         <div class="tooltip">CDN Logo资源库，提供各类品牌Logo的矢量文件下载</div>
       </a>
-      <a class="item" href="https://ping.chinaz.com/" target="_blank">
-        <img src="icons/站长之家.svg" alt="">
-        <div class="name">多个地点Ping</div>
-        <div class="tooltip">多地点Ping检测，从全球多个节点测试网络延迟和访问速度</div>
-      </a>
+
     </div>
 
-    <!-- ===== DAZAO & BKD ===== -->
-    <div class="category-title">DAZAO & BKD</div>
+    <!-- ===== 大造 & 博凯迪 ===== -->
+    <div class="category-title">大造 & 博凯迪</div>
     <div class="grid">
       <a class="item" href="https://jyhcn.en.alibaba.com/" target="_blank">
         <img src="icons/阿里国际站.svg" alt="">
