@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404</title>
+    <style>
+        /* 重置内外边距，让视频容器占满全屏 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #ffffff; /* 视频加载前或无法播放时的纯黑背景 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden; /* 防止滚动条出现 */
+        }
+
+        /* 视频容器：确保视频始终居中并按比例缩放 */
+        .video-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ffffff;
+        }
+
+        .video-container video {
+            /* 核心：视频宽高自适应，保持比例，并完全覆盖容器 */
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* 视频保持比例，完整可见，类似图片的 "contain" 效果 */
+            
+            /* 禁用用户交互 */
+            pointer-events: none;  /* 禁止任何鼠标事件（点击、悬停等） */
+            user-select: none;     /* 禁止选择 */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            
+            /* 禁用默认控件（虽然加了 controls 属性，但通过 CSS 隐藏，更彻底的方式是不加 controls） */
+            /* 我们不在 video 标签上加 controls 属性，因此控件不会显示 */
+        }
+
+        /* 针对移动端的微调，确保视频完整可见 */
+        @media (max-width: 480px) {
+            .video-container video {
+                object-fit: contain; /* 保持 contain，确保完整视频内容可见 */
+            }
+        }
+
+        /* 对于不支持 object-fit 的极旧浏览器，提供一个回退方案（可选） */
+        @supports not (object-fit: contain) {
+            .video-container video {
+                width: auto;
+                height: auto;
+                max-width: 100vw;
+                max-height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="video-container">
+        <!-- 
+            视频文件名为 dazao404.mp4，请确保此文件与当前 HTML 文件放在同一目录下。
+            没有 controls 属性，因此不显示任何播放控制条。
+            添加 playsinline 属性，在 iOS Safari 上避免全屏播放，保持内联。
+        -->
+        <video 
+            src="dazao404.mp4" 
+            autoplay 
+            loop 
+            muted 
+            playsinline
+            preload="auto"
+        ></video>
+    </div>
+</body>
+</html>
