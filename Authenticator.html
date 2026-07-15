@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>2FA两步验证器</title>
+    <link rel="icon" type="image/png" href="icons/GoogleAuthenticator.png">
+    <link rel="apple-touch-icon" href="icons/GoogleAuthenticator.png">
+    <style>
+        /* ===== 全局样式（完整保留，未改动） ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --bg-primary: #0b0e17;
+            --bg-secondary: #131a2b;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --bg-card-hover: rgba(255, 255, 255, 0.08);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --text-primary: #f0f4ff;
+            --text-secondary: rgba(255, 255, 255, 0.5);
+            --text-muted: rgba(255, 255, 255, 0.25);
+            --accent: #6c5ce7;
+            --accent-hover: #7f70f5;
+            --accent-glow: rgba(108, 92, 231, 0.3);
+            --danger: #ff6b6b;
+            --success: #51cf66;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-image: radial-gradient(ellipse at 50% 0%, rgba(108, 92, 231, 0.08) 0%, transparent 70%);
+        }
+        .app-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            justify-content: center;
+            max-width: 1100px;
+            width: 100%;
+            flex: 1;
+            align-items: stretch;
+        }
+        .app-column {
+            flex: 1 1 400px;
+            min-width: 320px;
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
+        }
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 4px 16px 4px;
+            min-height: 60px;
+        }
+        .app-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            background: linear-gradient(135deg, #a78bfa, #6c5ce7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .app-title .lock-icon {
+            font-size: 24px;
+            -webkit-text-fill-color: initial;
+            color: #a78bfa;
+        }
+        .btn-add {
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 16px var(--accent-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        .btn-add:hover {
+            background: var(--accent-hover);
+            transform: scale(1.05);
+            box-shadow: 0 6px 24px var(--accent-glow);
+        }
+        .btn-add:active {
+            transform: scale(0.95);
+        }
+
+        .header-placeholder {
+            width: 44px;
+            height: 44px;
+            flex-shrink: 0;
+            visibility: hidden;
+        }
+
+        .account-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            flex: 1;
+            padding-bottom: 4px;
+        }
+        .account-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius);
+            padding: 18px 20px 16px 20px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .account-card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+        .account-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0.3;
+        }
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .account-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 0.2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .account-name .badge {
+            font-size: 10px;
+            background: rgba(108, 92, 231, 0.25);
+            color: #a78bfa;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+        .btn-delete {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+            transition: var(--transition);
+            line-height: 1;
+        }
+        .btn-delete:hover {
+            color: var(--danger);
+            background: rgba(255, 107, 107, 0.1);
+        }
+        .card-body {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .otp-code {
+            font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 4px 0;
+            transition: var(--transition);
+            user-select: none;
+            background: linear-gradient(135deg, #e0e7ff, #c4b5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .otp-code:hover {
+            opacity: 0.8;
+            transform: scale(1.02);
+        }
+        .otp-code:active {
+            transform: scale(0.96);
+        }
+        .otp-code .otp-digits {
+            -webkit-text-fill-color: initial;
+            color: var(--text-primary);
+        }
+        .timer-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .timer-ring {
+            position: relative;
+            width: 50px;
+            height: 50px;
+        }
+        .timer-ring svg {
+            transform: rotate(-90deg);
+            width: 50px;
+            height: 50px;
+        }
+        .timer-ring .bg-circle {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.06);
+            stroke-width: 3.5;
+        }
+        .timer-ring .progress-circle {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 3.5;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;
+        }
+        .timer-ring .progress-circle.warning {
+            stroke: #fcc419;
+        }
+        .timer-ring .progress-circle.danger {
+            stroke: var(--danger);
+        }
+        .timer-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px dashed var(--border-card);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .empty-state .empty-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        .empty-state h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+        .empty-state p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            padding: 20px;
+            animation: fadeIn 0.25s ease;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 28px 30px 30px 30px;
+            max-width: 440px;
+            width: 100%;
+            border: 1px solid var(--border-card);
+            box-shadow: var(--shadow);
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+        .modal-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 22px;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            letter-spacing: 0.3px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 15px;
+            transition: var(--transition);
+            outline: none;
+            font-family: inherit;
+        }
+        .form-group input:focus {
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        .form-group input::placeholder {
+            color: var(--text-muted);
+        }
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 6px;
+        }
+        .form-actions button {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-modal-cancel {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+        }
+        .btn-modal-cancel:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .btn-modal-submit {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+        .btn-modal-submit:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 6px 24px var(--accent-glow);
+        }
+        .btn-modal-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .form-error {
+            color: var(--danger);
+            font-size: 13px;
+            margin-top: -10px;
+            margin-bottom: 12px;
+            display: none;
+        }
+        .form-error.show {
+            display: block;
+        }
+
+        .online-password-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 30px 32px;
+            border: 1px solid var(--border-card);
+            box-shadow: var(--shadow);
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: stretch;
+        }
+        .online-password-card h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+        .online-password-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .online-password-card input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 15px;
+            outline: none;
+        }
+        .online-password-card input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        .online-password-card button {
+            width: 100%;
+            margin-top: 16px;
+            padding: 12px;
+            background: var(--accent);
+            border: none;
+            border-radius: var(--radius-sm);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .online-password-card button:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+        .online-password-error {
+            color: var(--danger);
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+        .online-account-list-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .online-account-list-wrapper .account-list {
+            flex: 1;
+        }
+
+        .footer {
+            width: 100%;
+            max-width: 1100px;
+            text-align: center;
+            padding: 24px 0 8px 0;
+            color: var(--text-muted);
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            border-top: 1px solid var(--border-card);
+            margin-top: 24px;
+        }
+
+        @media (max-width: 860px) {
+            .app-column {
+                flex: 1 1 100%;
+                max-width: 520px;
+            }
+        }
+        @media (max-width: 480px) {
+            .app-column .app-title {
+                font-size: 18px;
+            }
+            .otp-code {
+                font-size: 26px;
+                letter-spacing: 3px;
+            }
+            .timer-ring {
+                width: 42px;
+                height: 42px;
+            }
+            .timer-ring svg {
+                width: 42px;
+                height: 42px;
+            }
+            .timer-text {
+                font-size: 11px;
+            }
+            .account-card {
+                padding: 14px 16px 12px 16px;
+            }
+            .modal {
+                padding: 22px 18px 24px 18px;
+            }
+            .btn-add {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+            .online-password-card {
+                padding: 22px 20px;
+            }
+            .app-header {
+                min-height: 50px;
+                padding: 6px 4px 12px 4px;
+            }
+            .header-placeholder {
+                width: 40px;
+                height: 40px;
+            }
+        }
+        @media (max-width: 380px) {
+            .otp-code {
+                font-size: 22px;
+                letter-spacing: 2px;
+            }
+            .timer-ring {
+                width: 36px;
+                height: 36px;
+            }
+            .timer-ring svg {
+                width: 36px;
+                height: 36px;
+            }
+            .timer-text {
+                font-size: 10px;
+            }
+            .header-placeholder {
+                width: 36px;
+                height: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 全局 Toast ===== -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ===== 左右两栏 ===== -->
+    <div class="app-wrapper">
+
+        <!-- ===== 左侧：本地 ===== -->
+        <div class="app-column" id="local-app">
+            <header class="app-header">
+                <div class="app-title"><span class="lock-icon">💻</span> 本地验证器</div>
+                <button class="btn-add" id="local-btnAdd" aria-label="添加账户" title="添加账户">+</button>
+            </header>
+            <div class="account-list" id="local-accountList"></div>
+        </div>
+
+        <!-- ===== 右侧：在线（增加占位元素） ===== -->
+        <div class="app-column" id="online-app">
+            <header class="app-header">
+                <div class="app-title"><span class="lock-icon">🌐</span> 在线验证器 </div>
+                <div class="header-placeholder"></div>  <!-- 与左侧+号同宽，保证头部高度一致 -->
+            </header>
+            <!-- 密码输入卡片（初始显示） -->
+            <div class="online-password-card" id="online-passwordCard">
+                <h2>🔑 2FA查询</h2>
+                <p>
+                    用于查询加密的账户密钥<br>
+                </p>
+                <input type="text" id="online-masterPasswordInput" placeholder="请输入需要查询内容" autofocus />
+                <div class="online-password-error" id="online-passwordError">X没有匹配的账户X</div>
+                <button id="online-unlockBtn">查询</button>
+            </div>
+            <!-- 验证码列表（解锁后显示） -->
+            <div class="online-account-list-wrapper" id="online-accountListWrapper" style="display: none;">
+                <div class="account-list" id="online-accountList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 底部信息 ===== -->
+    <div class="footer">技术支持@谌祖宝</div>
+
+    <!-- ===== 本地添加模态框 ===== -->
+    <div class="modal-overlay" id="local-modalOverlay">
+        <div class="modal">
+            <h2 class="modal-title">添加账户</h2>
+            <p class="modal-subtitle">输入账户名称和 Base32 密钥</p>
+            <form id="local-addForm" autocomplete="off">
+                <div class="form-group">
+                    <label for="local-inputName">账户名称</label>
+                    <input type="text" id="local-inputName" placeholder="例如：Google、GitHub" required />
+                </div>
+                <div class="form-group">
+                    <label for="local-inputSecret">密钥 (Base32)</label>
+                    <input type="text" id="local-inputSecret" placeholder="例如：sll5 slew j7nu rzan ip6s ryty god4 wdme" required spellcheck="false" />
+                </div>
+                <div class="form-error" id="local-formError">密钥无效，请检查后重试</div>
+                <div class="form-actions">
+                    <button type="button" class="btn-modal-cancel" id="local-btnCancel">取消</button>
+                    <button type="submit" class="btn-modal-submit" id="local-btnSubmit">添加</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ================================================================
+        // 模块1：本地验证器 (localStorage 存储，支持增删)
+        // ================================================================
+        (function() {
+            'use strict';
+
+            // DOM 元素
+            const accountListEl = document.getElementById('local-accountList');
+            const toastEl = document.getElementById('toast');
+            const modalOverlay = document.getElementById('local-modalOverlay');
+            const btnAdd = document.getElementById('local-btnAdd');
+            const btnCancel = document.getElementById('local-btnCancel');
+            const btnSubmit = document.getElementById('local-btnSubmit');
+            const form = document.getElementById('local-addForm');
+            const inputName = document.getElementById('local-inputName');
+            const inputSecret = document.getElementById('local-inputSecret');
+            const formError = document.getElementById('local-formError');
+
+            const STORAGE_KEY = 'my_authenticator_accounts';
+
+            function base32Decode(str) {
+                str = str.replace(/\s/g, '').replace(/=+$/, '').toUpperCase();
+                if (!str) return new Uint8Array(0);
+                const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+                const bytes = [];
+                let bits = 0,
+                    value = 0;
+                for (let i = 0; i < str.length; i++) {
+                    const idx = alphabet.indexOf(str[i]);
+                    if (idx === -1) continue;
+                    value = (value << 5) | idx;
+                    bits += 5;
+                    if (bits >= 8) {
+                        bytes.push((value >> (bits - 8)) & 0xff);
+                        bits -= 8;
+                    }
+                }
+                return new Uint8Array(bytes);
+            }
+
+            async function generateTOTP(secretBase32, timeStep) {
+                try {
+                    const keyBytes = base32Decode(secretBase32);
+                    if (keyBytes.length === 0) throw new Error('密钥无效');
+                    const timeBuf = new ArrayBuffer(8);
+                    const view = new DataView(timeBuf);
+                    view.setBigUint64(0, BigInt(timeStep), false);
+                    const cryptoKey = await crypto.subtle.importKey(
+                        'raw', keyBytes, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']
+                    );
+                    const hmacResult = await crypto.subtle.sign('HMAC', cryptoKey, timeBuf);
+                    const hmacBytes = new Uint8Array(hmacResult);
+                    const offset = hmacBytes[hmacBytes.length - 1] & 0x0f;
+                    const binary = ((hmacBytes[offset] & 0x7f) << 24) |
+                        ((hmacBytes[offset + 1] & 0xff) << 16) |
+                        ((hmacBytes[offset + 2] & 0xff) << 8) |
+                        (hmacBytes[offset + 3] & 0xff);
+                    const otp = binary % 1000000;
+                    return otp.toString().padStart(6, '0');
+                } catch { return null; }
+            }
+
+            function getCurrentTimeStep() { return Math.floor(Date.now() / 1000 / 30); }
+
+            function getRemainingSeconds() { return 30 - (Math.floor(Date.now() / 1000) % 30); }
+
+            function loadAccounts() {
+                try {
+                    const data = localStorage.getItem(STORAGE_KEY);
+                    if (data) return JSON.parse(data);
+                } catch (_) {}
+                return [];
+            }
+
+            function saveAccounts(accounts) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
+            }
+
+            function addAccount(name, secret) {
+                const accounts = loadAccounts();
+                if (accounts.some(acc => acc.name.toLowerCase() === name.trim().toLowerCase())) return false;
+                accounts.push({
+                    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+                    name: name.trim(),
+                    secret: secret.trim().toUpperCase().replace(/\s/g, ''),
+                    createdAt: Date.now()
+                });
+                saveAccounts(accounts);
+                return true;
+            }
+
+            function deleteAccount(id) {
+                let accounts = loadAccounts();
+                accounts = accounts.filter(acc => acc.id !== id);
+                saveAccounts(accounts);
+            }
+
+            let toastTimeout = null;
+
+            function showToast(message) {
+                if (toastTimeout) {
+                    clearTimeout(toastTimeout);
+                    toastEl.classList.remove('show');
+                }
+                void toastEl.offsetWidth;
+                toastEl.textContent = message;
+                toastEl.classList.add('show');
+                toastTimeout = setTimeout(() => {
+                    toastEl.classList.remove('show');
+                    toastTimeout = null;
+                }, 1800);
+            }
+
+            async function copyOTP(code) {
+                try {
+                    await navigator.clipboard.writeText(code);
+                    showToast('✅ 已复制 ' + code);
+                } catch {
+                    const ta = document.createElement('textarea');
+                    ta.value = code;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    showToast('✅ 已复制 ' + code);
+                }
+            }
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            const otpCache = new Map();
+
+            async function renderAccounts() {
+                const accounts = loadAccounts();
+                if (accounts.length === 0) {
+                    accountListEl.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">🔑</div>
+                            <h3>还没有账户</h3>
+                            <p>点击右上角「+」添加你的两步验证账户</p>
+                        </div>
+                    `;
+                    return;
+                }
+                let html = '';
+                const timeStep = getCurrentTimeStep();
+                const remaining = getRemainingSeconds();
+                for (const acc of accounts) {
+                    let cached = otpCache.get(acc.id);
+                    if (!cached || cached.timeStep !== timeStep) {
+                        const code = await generateTOTP(acc.secret, timeStep);
+                        cached = { code: code || '------', timeStep };
+                        otpCache.set(acc.id, cached);
+                    }
+                    const code = cached.code;
+                    const displayCode = code.length === 6 ? code.slice(0, 3) + ' ' + code.slice(3) : code;
+                    const progress = remaining / 30;
+                    const circumference = 2 * Math.PI * 20;
+                    const offset = circumference * (1 - progress);
+                    let progressClass = '';
+                    if (remaining <= 5) progressClass = 'danger';
+                    else if (remaining <= 10) progressClass = 'warning';
+                    html += `
+                        <div class="account-card" data-id="${acc.id}">
+                            <div class="card-top">
+                                <span class="account-name">${escapeHtml(acc.name)}<span class="badge">TOTP</span></span>
+                                <button class="btn-delete" data-id="${acc.id}" aria-label="删除账户" title="删除账户">✕</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="otp-code" data-id="${acc.id}" data-code="${code}" title="点击复制">
+                                    <span class="otp-digits">${displayCode}</span>
+                                </div>
+                                <div class="timer-wrapper">
+                                    <div class="timer-ring">
+                                        <svg viewBox="0 0 48 48">
+                                            <circle class="bg-circle" cx="24" cy="24" r="20" />
+                                            <circle class="progress-circle ${progressClass}" cx="24" cy="24" r="20"
+                                                stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" />
+                                        </svg>
+                                        <span class="timer-text">${remaining}s</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                accountListEl.innerHTML = html;
+
+                document.querySelectorAll('#local-accountList .otp-code').forEach(el => {
+                    el.addEventListener('click', function() {
+                        const code = this.dataset.code;
+                        if (code && code !== '------') copyOTP(code);
+                        else showToast('⚠️ 无效验证码');
+                    });
+                });
+                document.querySelectorAll('#local-accountList .btn-delete').forEach(el => {
+                    el.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = this.dataset.id;
+                        if (confirm('确定要删除此账户吗？')) {
+                            deleteAccount(id);
+                            otpCache.delete(id);
+                            renderAccounts();
+                            showToast('已删除账户');
+                        }
+                    });
+                });
+            }
+
+            function updateTimersOnly() {
+                const remaining = getRemainingSeconds();
+                const progress = remaining / 30;
+                const circumference = 2 * Math.PI * 20;
+                const offset = circumference * (1 - progress);
+                const cards = document.querySelectorAll('#local-accountList .account-card');
+                cards.forEach(card => {
+                    const timerText = card.querySelector('.timer-text');
+                    const progressCircle = card.querySelector('.progress-circle');
+                    if (timerText) timerText.textContent = remaining + 's';
+                    if (progressCircle) {
+                        progressCircle.setAttribute('stroke-dashoffset', offset);
+                        progressCircle.classList.remove('warning', 'danger');
+                        if (remaining <= 5) progressCircle.classList.add('danger');
+                        else if (remaining <= 10) progressCircle.classList.add('warning');
+                    }
+                });
+            }
+
+            let updateTimer = null;
+
+            function startUpdateLoop() {
+                renderAccounts();
+                let lastStep = getCurrentTimeStep();
+                if (updateTimer) clearInterval(updateTimer);
+                updateTimer = setInterval(() => {
+                    const currentStep = getCurrentTimeStep();
+                    if (currentStep !== lastStep) {
+                        lastStep = currentStep;
+                        otpCache.clear();
+                        renderAccounts();
+                    } else {
+                        updateTimersOnly();
+                    }
+                }, 1000);
+            }
+
+            function openModal() {
+                modalOverlay.classList.add('active');
+                inputName.value = '';
+                inputSecret.value = '';
+                formError.classList.remove('show');
+                btnSubmit.disabled = false;
+                setTimeout(() => inputName.focus(), 100);
+            }
+
+            function closeModal() {
+                modalOverlay.classList.remove('active');
+            }
+
+            btnAdd.addEventListener('click', openModal);
+            btnCancel.addEventListener('click', closeModal);
+            modalOverlay.addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && modalOverlay.classList.contains('active')) closeModal();
+            });
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const name = inputName.value.trim();
+                let secret = inputSecret.value.trim().toUpperCase().replace(/\s/g, '');
+                if (!name) {
+                    formError.textContent = '请输入账户名称';
+                    formError.classList.add('show');
+                    inputName.focus();
+                    return;
+                }
+                if (!secret) {
+                    formError.textContent = '请输入密钥';
+                    formError.classList.add('show');
+                    inputSecret.focus();
+                    return;
+                }
+                btnSubmit.disabled = true;
+                formError.classList.remove('show');
+                try {
+                    const testStep = getCurrentTimeStep();
+                    const testCode = await generateTOTP(secret, testStep);
+                    if (testCode === null || testCode === '------') {
+                        formError.textContent = '密钥无效，请检查输入是否正确';
+                        formError.classList.add('show');
+                        btnSubmit.disabled = false;
+                        inputSecret.focus();
+                        inputSecret.select();
+                        return;
+                    }
+                    const success = addAccount(name, secret);
+                    if (!success) {
+                        formError.textContent = '账户名称已存在，请使用不同的名称';
+                        formError.classList.add('show');
+                        btnSubmit.disabled = false;
+                        inputName.focus();
+                        inputName.select();
+                        return;
+                    }
+                    closeModal();
+                    otpCache.clear();
+                    renderAccounts();
+                    showToast('✅ 已添加 ' + name);
+                } catch (err) {
+                    formError.textContent = '添加失败: ' + err.message;
+                    formError.classList.add('show');
+                    btnSubmit.disabled = false;
+                }
+            });
+
+            inputName.addEventListener('input', () => formError.classList.remove('show'));
+            inputSecret.addEventListener('input', () => formError.classList.remove('show'));
+
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    otpCache.clear();
+                    renderAccounts();
+                }
+            });
+            startUpdateLoop();
+        })();
+
+
+        // ================================================================
+        // 模块2：在线验证器 (硬编码加密账户，需主密码解密)
+        // ================================================================
+        (function() {
+            'use strict';
+
+            // ---- 加密/解密工具 ----
+            async function encrypt(plaintext, password) {
+                const encoder = new TextEncoder();
+                const keyMaterial = await crypto.subtle.importKey(
+                    'raw',
+                    encoder.encode(password),
+                    { name: 'PBKDF2' },
+                    false,
+                    ['deriveKey']
+                );
+                const salt = crypto.getRandomValues(new Uint8Array(16));
+                const key = await crypto.subtle.deriveKey(
+                    { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+                    keyMaterial,
+                    { name: 'AES-GCM', length: 256 },
+                    false,
+                    ['encrypt']
+                );
+                const iv = crypto.getRandomValues(new Uint8Array(12));
+                const encrypted = await crypto.subtle.encrypt(
+                    { name: 'AES-GCM', iv },
+                    key,
+                    encoder.encode(plaintext)
+                );
+                const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+                combined.set(salt, 0);
+                combined.set(iv, salt.length);
+                combined.set(new Uint8Array(encrypted), salt.length + iv.length);
+                return btoa(String.fromCharCode(...combined));
+            }
+
+            async function decrypt(ciphertextB64, password) {
+                const combined = Uint8Array.from(atob(ciphertextB64), c => c.charCodeAt(0));
+                const salt = combined.slice(0, 16);
+                const iv = combined.slice(16, 28);
+                const ciphertext = combined.slice(28);
+                const encoder = new TextEncoder();
+                const keyMaterial = await crypto.subtle.importKey(
+                    'raw',
+                    encoder.encode(password),
+                    { name: 'PBKDF2' },
+                    false,
+                    ['deriveKey']
+                );
+                const key = await crypto.subtle.deriveKey(
+                    { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+                    keyMaterial,
+                    { name: 'AES-GCM', length: 256 },
+                    false,
+                    ['decrypt']
+                );
+                const plaintext = await crypto.subtle.decrypt(
+                    { name: 'AES-GCM', iv },
+                    key,
+                    ciphertext
+                );
+                return new TextDecoder().decode(plaintext);
+            }
+
+            // ---- 硬编码加密账户列表 ----
+            const ENCRYPTED_ACCOUNTS = [
+                // 【alicet9xgibsonc4k，新景地会议室@古过友凶】
+                { name: 'Gmail', secret: 'ENC:xmIy9ytEDQmupZw3DsM+ux/t+m/3rsMXlYxkFLRSgvsW6kbt7s0K4VqgV3sTaNynW8qwZTcmgXWhyuJjhUtwtuUGMij+p1JGnU+VSQ==' }, 
+                // 【80******6】
+                { name: 'Google', secret: 'ENC:6E3ZVWJLSQ+2n2A9arzYNB0PytdNP3uZUpfHFZ0uQcOTD7y2QWHX21PWO/kk1vchnSlfkSes5JWo8T3ZD6RtGOiOcc6uxqkb91zFOA==' }
+            ];
+
+            // ---- DOM ----
+            const passwordCard = document.getElementById('online-passwordCard');
+            const accountListWrapper = document.getElementById('online-accountListWrapper');
+            const accountListEl = document.getElementById('online-accountList');
+            const toastEl = document.getElementById('toast');
+            const pwdInput = document.getElementById('online-masterPasswordInput');
+            const unlockBtn = document.getElementById('online-unlockBtn');
+            const pwdError = document.getElementById('online-passwordError');
+
+            let decryptedAccounts = [];
+
+            // ---- Toast (复用全局) ----
+            let toastTimeout = null;
+
+            function showToast(message) {
+                if (toastTimeout) {
+                    clearTimeout(toastTimeout);
+                    toastEl.classList.remove('show');
+                }
+                void toastEl.offsetWidth;
+                toastEl.textContent = message;
+                toastEl.classList.add('show');
+                toastTimeout = setTimeout(() => {
+                    toastEl.classList.remove('show');
+                    toastTimeout = null;
+                }, 1800);
+            }
+
+            async function copyOTP(code) {
+                try {
+                    await navigator.clipboard.writeText(code);
+                    showToast('✅ 已复制 ' + code);
+                } catch {
+                    const ta = document.createElement('textarea');
+                    ta.value = code;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    showToast('✅ 已复制 ' + code);
+                }
+            }
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            // ---- TOTP 生成 ----
+            function base32Decode(str) {
+                str = str.replace(/\s/g, '').replace(/=+$/, '').toUpperCase();
+                const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+                const bytes = [];
+                let bits = 0,
+                    value = 0;
+                for (let i = 0; i < str.length; i++) {
+                    const idx = alphabet.indexOf(str[i]);
+                    if (idx === -1) continue;
+                    value = (value << 5) | idx;
+                    bits += 5;
+                    if (bits >= 8) {
+                        bytes.push((value >> (bits - 8)) & 0xff);
+                        bits -= 8;
+                    }
+                }
+                return new Uint8Array(bytes);
+            }
+
+            async function generateTOTP(secretBase32, timeStep) {
+                try {
+                    const keyBytes = base32Decode(secretBase32);
+                    if (keyBytes.length === 0) throw new Error('密钥无效');
+                    const timeBuf = new ArrayBuffer(8);
+                    const view = new DataView(timeBuf);
+                    view.setBigUint64(0, BigInt(timeStep), false);
+                    const cryptoKey = await crypto.subtle.importKey(
+                        'raw', keyBytes, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']
+                    );
+                    const hmacResult = await crypto.subtle.sign('HMAC', cryptoKey, timeBuf);
+                    const hmacBytes = new Uint8Array(hmacResult);
+                    const offset = hmacBytes[hmacBytes.length - 1] & 0x0f;
+                    const binary = ((hmacBytes[offset] & 0x7f) << 24) |
+                        ((hmacBytes[offset + 1] & 0xff) << 16) |
+                        ((hmacBytes[offset + 2] & 0xff) << 8) |
+                        (hmacBytes[offset + 3] & 0xff);
+                    const otp = binary % 1000000;
+                    return otp.toString().padStart(6, '0');
+                } catch { return null; }
+            }
+
+            function getCurrentTimeStep() { return Math.floor(Date.now() / 1000 / 30); }
+
+            function getRemainingSeconds() { return 30 - (Math.floor(Date.now() / 1000) % 30); }
+
+            // ---- 核心解锁 ----
+            async function unlockWithPassword(password) {
+                pwdError.style.display = 'none';
+                const decrypted = [];
+                for (const item of ENCRYPTED_ACCOUNTS) {
+                    if (item.secret.startsWith('ENC:')) {
+                        const cipher = item.secret.slice(4);
+                        try {
+                            const plainSecret = await decrypt(cipher, password);
+                            decrypted.push({
+                                id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+                                name: item.name,
+                                secret: plainSecret
+                            });
+                        } catch (e) {
+                            console.log(`账户 "${item.name}" 不匹配当前主密码`);
+                        }
+                    } else {
+                        decrypted.push({
+                            id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+                            name: item.name,
+                            secret: item.secret
+                        });
+                    }
+                }
+                if (decrypted.length === 0) {
+                    pwdError.style.display = 'block';
+                    pwdInput.value = '';
+                    pwdInput.focus();
+                    return;
+                }
+                decryptedAccounts = decrypted;
+                passwordCard.style.display = 'none';
+                accountListWrapper.style.display = 'block';
+                renderAccounts();
+                startUpdateLoop();
+                showToast(`✅ 查询成功，共 ${decrypted.length} 个账户`);
+            }
+
+            // ---- 渲染 ----
+            const otpCache = new Map();
+
+            async function renderAccounts() {
+                if (!decryptedAccounts || decryptedAccounts.length === 0) {
+                    accountListEl.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">🔑</div>
+                            <h3>没有匹配的账户</h3>
+                            <p>请尝试输入其他主密码，或检查硬编码账户</p>
+                        </div>
+                    `;
+                    return;
+                }
+                let html = '';
+                const timeStep = getCurrentTimeStep();
+                const remaining = getRemainingSeconds();
+                for (const acc of decryptedAccounts) {
+                    let cached = otpCache.get(acc.id);
+                    if (!cached || cached.timeStep !== timeStep) {
+                        const code = await generateTOTP(acc.secret, timeStep);
+                        cached = { code: code || '------', timeStep };
+                        otpCache.set(acc.id, cached);
+                    }
+                    const code = cached.code;
+                    const displayCode = code.length === 6 ? code.slice(0, 3) + ' ' + code.slice(3) : code;
+                    const progress = remaining / 30;
+                    const circumference = 2 * Math.PI * 20;
+                    const offset = circumference * (1 - progress);
+                    let progressClass = '';
+                    if (remaining <= 5) progressClass = 'danger';
+                    else if (remaining <= 10) progressClass = 'warning';
+                    html += `
+                        <div class="account-card">
+                            <div class="card-top">
+                                <span class="account-name">${escapeHtml(acc.name)}<span class="badge">TOTP</span></span>
+                            </div>
+                            <div class="card-body">
+                                <div class="otp-code" data-code="${code}" title="点击复制">${displayCode}</div>
+                                <div class="timer-wrapper">
+                                    <div class="timer-ring">
+                                        <svg viewBox="0 0 48 48">
+                                            <circle class="bg-circle" cx="24" cy="24" r="20"/>
+                                            <circle class="progress-circle ${progressClass}" cx="24" cy="24" r="20"
+                                                stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/>
+                                        </svg>
+                                        <span class="timer-text">${remaining}s</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                accountListEl.innerHTML = html;
+
+                document.querySelectorAll('#online-accountList .otp-code').forEach(el => {
+                    el.addEventListener('click', function() {
+                        const code = this.dataset.code;
+                        if (code && code !== '------') copyOTP(code);
+                        else showToast('⚠️ 无效验证码');
+                    });
+                });
+            }
+
+            // ---- 定时更新 ----
+            let updateTimer = null;
+
+            function startUpdateLoop() {
+                if (updateTimer) clearInterval(updateTimer);
+                renderAccounts();
+                let lastStep = getCurrentTimeStep();
+                updateTimer = setInterval(() => {
+                    const currentStep = getCurrentTimeStep();
+                    if (currentStep !== lastStep) {
+                        lastStep = currentStep;
+                        otpCache.clear();
+                        renderAccounts();
+                    } else {
+                        renderAccounts();
+                    }
+                }, 1000);
+            }
+
+            // ---- 初始化 ----
+            passwordCard.style.display = 'flex';
+            accountListWrapper.style.display = 'none';
+            pwdInput.focus();
+
+            unlockBtn.addEventListener('click', () => {
+                const pwd = pwdInput.value;
+                if (pwd) unlockWithPassword(pwd);
+            });
+            pwdInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') unlockBtn.click();
+            });
+
+            window.encrypt = encrypt;
+            window.decrypt = decrypt;
+            console.log('🌐 在线验证器已加载，等待主密码解锁');
+        })();
+    </script>
+</body>
+</html>
