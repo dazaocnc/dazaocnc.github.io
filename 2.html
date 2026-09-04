@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>导航V2.1</title>
+    <title>DZ导航</title>
     <link rel="icon" href="icons/Favicon32px.ico" type="image/x-icon">
     <link rel="apple-touch-icon" href="icons/Favicon32px.ico">
     <style>
@@ -353,6 +353,52 @@
                 height: 20px;
             }
         }
+
+        /* ============================================================
+           合集菜单项 — 按钮上方说明框（与普通分类卡片 tooltip 一致）
+           悬停弹层里的某个网站时，在它的按钮正上方弹出文字介绍
+           ============================================================ */
+        .popup-menu .menu-item {
+            position: relative;
+        }
+        .popup-menu .menu-item .mi-tip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background: #2d2d2d;
+            color: #fff;
+            text-align: left;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            line-height: 1.55;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+            transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
+            z-index: 100;
+            pointer-events: none;
+            width: max-content;
+            max-width: 240px;
+            white-space: normal;
+            word-break: break-word;
+            margin-bottom: 6px;
+        }
+        .popup-menu .menu-item .mi-tip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #2d2d2d;
+        }
+        .popup-menu .menu-item:hover .mi-tip {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(-50%) translateY(-12px);
+        }
     </style>
 </head>
 
@@ -591,6 +637,7 @@
                         <a class="menu-item" href="${item.url}" target="_blank" role="menuitem">
                             <img src="${item.icon}" alt="${item.name}">
                             <span>${item.name}</span>
+                            ${item.desc ? `<span class="mi-tip">${item.desc}</span>` : ''}
                         </a>
                     `;
             });
@@ -673,99 +720,99 @@
         // ============================================================
        
 createPopupMenu('googleCard', 'googleMenu', 'Google 全家桶', [
-            { name: '搜索', url: 'https://www.google.com/webhp?hl=zh', icon: 'icons/Google.svg' },
-            { name: 'Gemini', url: 'https://gemini.google.com/', icon: 'icons/GoogleGemini.svg' },
-            { name: 'Gmail', url: 'https://mail.google.com/', icon: 'icons/GoogleGmail.svg' },
-            { name: 'Translate', url: 'https://translate.google.com/', icon: 'icons/GoogleTranslate.svg' },
-            { name: 'Maps', url: 'https://www.google.com/maps/', icon: 'icons/GoogleMaps.svg' },
-            { name: 'YouTube', url: 'https://www.youtube.com/', icon: 'icons/GoogleYouTube.svg' },
-            { name: 'Drive', url: 'https://drive.google.com/', icon: 'icons/GoogleDrive.svg' },
-            { name: 'Trends', url: 'https://trends.google.com/home', icon: 'icons/GoogleTrends.svg' },
-            { name: 'Calendar', url: 'https://calendar.google.com/', icon: 'icons/GoogleCalendar.svg' },
-            { name: 'Meet', url: 'https://meet.google.com/', icon: 'icons/GoogleMeet.svg' },
-            { name: 'Authenticator', url: 'https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2', icon: 'icons/GoogleAuthenticator.svg' },
-            { name: 'News', url: 'https://news.google.com/', icon: 'icons/GoogleNews.svg' },
-            { name: 'AI Studio', url: 'https://aistudio.google.com/', icon: 'icons/GoogleAIStudio.svg' },
-            { name: 'Ads', url: 'https://ads.google.com/', icon: 'icons/GoogleAds.svg' },
-            { name: 'Earth', url: 'https://earth.google.com/web/', icon: 'icons/GoogleEarth.svg' },
-            { name: 'Chrome', url: 'https://www.google.cn/chrome/index.html', icon: 'icons/GoogleChrome.svg' },
+            { name: '搜索', url: 'https://www.google.com/webhp?hl=zh', icon: 'icons/Google.svg', desc: 'Google 网页搜索，全球使用最广的搜索引擎入口' },
+            { name: 'Gemini', url: 'https://gemini.google.com/', icon: 'icons/GoogleGemini.svg', desc: 'Google 新一代多模态 AI 助手，支持文本、图像与代码对话创作' },
+            { name: 'Gmail', url: 'https://mail.google.com/', icon: 'icons/GoogleGmail.svg', desc: 'Google 邮箱，15GB 免费空间，智能分类与强大反垃圾能力' },
+            { name: 'Translate', url: 'https://translate.google.com/', icon: 'icons/GoogleTranslate.svg', desc: 'Google 翻译，支持上百种语言互译与网页一键翻译' },
+            { name: 'Maps', url: 'https://www.google.com/maps/', icon: 'icons/GoogleMaps.svg', desc: 'Google 地图，全球导航、街景与地点搜索' },
+            { name: 'YouTube', url: 'https://www.youtube.com/', icon: 'icons/GoogleYouTube.svg', desc: '全球最大视频平台，看视频、学教程、做频道运营' },
+            { name: 'Drive', url: 'https://drive.google.com/', icon: 'icons/GoogleDrive.svg', desc: 'Google 云盘，15GB 免费空间，文档表格幻灯片云端协作' },
+            { name: 'Trends', url: 'https://trends.google.com/home', icon: 'icons/GoogleTrends.svg', desc: 'Google 趋势，查看全球关键词热度与搜索趋势变化' },
+            { name: 'Calendar', url: 'https://calendar.google.com/', icon: 'icons/GoogleCalendar.svg', desc: 'Google 日历，日程安排与团队时间管理' },
+            { name: 'Meet', url: 'https://meet.google.com/', icon: 'icons/GoogleMeet.svg', desc: 'Google 视频会议，免费高清会议与屏幕共享' },
+            { name: 'Authenticator', url: 'https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2', icon: 'icons/GoogleAuthenticator.svg', desc: 'Google 两步验证器，扫码生成动态验证码保护账号安全' },
+            { name: 'News', url: 'https://news.google.com/', icon: 'icons/GoogleNews.svg', desc: 'Google 新闻，聚合全球资讯，可按主题与地区浏览' },
+            { name: 'AI Studio', url: 'https://aistudio.google.com/', icon: 'icons/GoogleAIStudio.svg', desc: 'Google AI 开发平台，调试 Gemini API 与提示工程' },
+            { name: 'Ads', url: 'https://ads.google.com/', icon: 'icons/GoogleAds.svg', desc: 'Google Ads 广告后台，投放与优化搜索/展示广告' },
+            { name: 'Earth', url: 'https://earth.google.com/web/', icon: 'icons/GoogleEarth.svg', desc: 'Google 地球，3D 卫星地图，探索全球地貌与城市' },
+            { name: 'Chrome', url: 'https://www.google.cn/chrome/index.html', icon: 'icons/GoogleChrome.svg', desc: 'Google Chrome 浏览器，同步书签密码，扩展生态丰富' },
         ]);
 
 createPopupMenu('aihejiCard', 'aihejiMenu', 'Ai合集', [
-{ name: 'ChatGPT', url: 'https://chatgpt.com/', icon: 'icons/ChatGPT.svg' },
-{ name: 'Gemini', url: 'https://gemini.google.com/', icon: 'icons/GoogleGemini.svg' },
-{ name: 'DeepSeek', url: 'https://chat.deepseek.com/', icon: 'icons/DeepSeek.svg' },
-{ name: 'Google AI Studio', url: 'https://aistudio.google.com/', icon: 'icons/GoogleAIStudio.svg' },
-{ name: '豆包', url: 'https://www.doubao.com/chat/', icon: 'icons/豆包.png' },
-{ name: '元宝', url: 'https://yuanbao.tencent.com/chat/', icon: 'icons/元宝.svg' },
-{ name: 'Copilot', url: 'https://copilot.microsoft.com/', icon: 'icons/Copilot.svg' },
-{ name: '文心', url: 'https://yiyan.baidu.com/', icon: 'icons/百度文心.svg' },
-{ name: '千问', url: 'https://www.qianwen.com/', icon: 'icons/千问.svg' },
-{ name: 'Suno.cn', url: 'https://www.suno.cn/home/#/create', icon: 'icons/Sunocn.svg' },
-{ name: 'Suno.com', url: 'https://www.suno.cn/home/#/create', icon: 'icons/Sunocom.svg' },
-{ name: '即梦', url: 'https://jimeng.jianying.com/', icon: 'icons/即梦.svg' },
-{ name: 'n8n', url: 'https://n8n.srv1692805.hstgr.cloud/home/workflows', icon: 'icons/n8n.svg' },
-{ name: 'WorkBuddy', url: 'https://copilot.tencent.com/work/', icon: 'icons/WorkBuddy.png' },
-{ name: 'Coze', url: 'https://www.coze.cn/overview', icon: 'icons/扣子.png' },
-{ name: 'AccioWork', url: 'https://www.accio.com/invite-work?sId=TOzyLbBwDdC2eBIaxGc3rw%3D%3D&ic=IC418070373362&tenant=accio&src=p_referral_IC418070373362&return_url=https%3A%2F%2Fwww.accio.com%2Fwork%2F', icon: 'icons/阿里AccioWork.svg' },
+{ name: 'ChatGPT', url: 'https://chatgpt.com/', icon: 'icons/ChatGPT.svg', desc: 'OpenAI 对话助手，写作、编程、分析样样在行' },
+{ name: 'Gemini', url: 'https://gemini.google.com/', icon: 'icons/GoogleGemini.svg', desc: 'Google 多模态 AI 助手，可处理文字、图片与长上下文' },
+{ name: 'DeepSeek', url: 'https://chat.deepseek.com/', icon: 'icons/DeepSeek.svg', desc: '深度求索大模型，推理能力强、上下文长、性价比高' },
+{ name: 'Google AI Studio', url: 'https://aistudio.google.com/', icon: 'icons/GoogleAIStudio.svg', desc: 'Google Gemini API 在线调试与提示工程平台' },
+{ name: '豆包', url: 'https://www.doubao.com/chat/', icon: 'icons/豆包.png', desc: '字节跳动 AI 助手，支持对话、写作与多轮问答' },
+{ name: '元宝', url: 'https://yuanbao.tencent.com/chat/', icon: 'icons/元宝.svg', desc: '腾讯 AI 助手，集成混元大模型，可联网搜索与读文档' },
+{ name: 'Copilot', url: 'https://copilot.microsoft.com/', icon: 'icons/Copilot.svg', desc: '微软 AI 助手，接入 GPT 能力，办公写作好帮手' },
+{ name: '文心', url: 'https://yiyan.baidu.com/', icon: 'icons/百度文心.svg', desc: '百度文心一言，中文大模型对话与内容创作' },
+{ name: '千问', url: 'https://www.qianwen.com/', icon: 'icons/千问.svg', desc: '阿里通义千问，中文问答与办公创作助手' },
+{ name: 'Suno.cn', url: 'https://www.suno.cn/home/#/create', icon: 'icons/Sunocn.svg', desc: 'Suno 国内版，一句话生成完整歌曲的 AI 音乐平台' },
+{ name: 'Suno.com', url: 'https://www.suno.cn/home/#/create', icon: 'icons/Sunocom.svg', desc: 'Suno 官网，AI 作词作曲，快速生成完整歌曲' },
+{ name: '即梦', url: 'https://jimeng.jianying.com/', icon: 'icons/即梦.svg', desc: '字节旗下 AI 创作平台，支持图片与视频生成编辑' },
+{ name: 'n8n', url: 'https://n8n.srv1692805.hstgr.cloud/home/workflows', icon: 'icons/n8n.svg', desc: '开源自动化工作流平台，连接各类服务编排流程' },
+{ name: 'WorkBuddy', url: 'https://copilot.tencent.com/work/', icon: 'icons/WorkBuddy.png', desc: '腾讯智能体工作台，让 AI 连接办公工具完成业务操作' },
+{ name: 'Coze', url: 'https://www.coze.cn/overview', icon: 'icons/扣子.png', desc: '扣子 AI 应用开发平台，无代码搭建 Bot 与工作流' },
+{ name: 'AccioWork', url: 'https://www.accio.com/invite-work?sId=TOzyLbBwDdC2eBIaxGc3rw%3D%3D&ic=IC418070373362&tenant=accio&src=p_referral_IC418070373362&return_url=https%3A%2F%2Fwww.accio.com%2Fwork%2F', icon: 'icons/阿里AccioWork.svg', desc: '阿里巴巴 Accio AI 工作助手，辅助外贸与商务智能体任务' },
 ]);
 
 createPopupMenu('huiyiCard', 'huiyiMenu', '远程会议', [
-    { name: 'ZOOM', url: 'https://www.zoom.com/', icon: 'icons/Zoom.svg' },
-    { name: 'MS Teams<br>微软会议', url: 'https://teams.live.com/free', icon: 'icons/MicrosoftTeams.svg' },
-    { name: 'Google Meet<br>谷歌会议', url: 'https://meet.google.com/landing', icon: 'icons/GoogleMeet.svg' },
-    { name: 'VooVmeeting<br>腾讯会议', url: 'https://voovmeeting.com/user-center/join', icon: 'icons/腾讯会议.svg' },
+    { name: 'ZOOM', url: 'https://www.zoom.com/', icon: 'icons/Zoom.svg', desc: '全球流行的视频会议软件，与海外客户沟通常用' },
+    { name: 'MS Teams<br>微软会议', url: 'https://teams.live.com/free', icon: 'icons/MicrosoftTeams.svg', desc: '微软 Teams，企业级会议、聊天与团队协作平台' },
+    { name: 'Google Meet<br>谷歌会议', url: 'https://meet.google.com/landing', icon: 'icons/GoogleMeet.svg', desc: 'Google 视频会议，浏览器打开即用，无需安装' },
+    { name: 'VooVmeeting<br>腾讯会议', url: 'https://voovmeeting.com/user-center/join', icon: 'icons/腾讯会议.svg', desc: '腾讯会议国际版 VooV，跨国视频会议低延迟' },
 ]);
 
 createPopupMenu('dazaoCard', 'dazaoMenu', '公司店铺', [
-    { name: 'DAZAO', url: 'https://jyhcn.en.alibaba.com/', icon: 'icons/阿里国际站.svg' },
-    { name: 'DAZAO', url: 'https://dazaocn.1688.com/', icon: 'icons/阿里1688.svg' },
-    { name: 'DAZAO', url: 'https://dazao-machinery.en.made-in-china.com/', icon: 'icons/制造网.svg' },
-    { name: 'dazaocn.com', url: 'https://www.dazaocn.com/', icon: 'icons/公司DAZAO.svg' },
-    { name: 'machining.com', url: 'https://www.dazaocncmachining.com/', icon: 'icons/公司DAZAO.svg' },
-    { name: 'BKD', url: 'https://moldmanufacturing.en.alibaba.com/', icon: 'icons/阿里国际站.svg' },
-    { name: 'BKD', url: 'https://shuangyicn.1688.com/', icon: 'icons/阿里1688.svg' },
-    { name: 'BKD', url: 'https://bokaidi.cn/', icon: 'icons/公司BKD.svg' },
+    { name: 'DAZAO', url: 'https://jyhcn.en.alibaba.com/', icon: 'icons/阿里国际站.svg', desc: '大造 阿里巴巴国际站店铺，主营精密 CNC 加工' },
+    { name: 'DAZAO', url: 'https://dazaocn.1688.com/', icon: 'icons/阿里1688.svg', desc: '大造 1688 店铺，国内批发采购渠道' },
+    { name: 'DAZAO', url: 'https://dazao-machinery.en.made-in-china.com/', icon: 'icons/制造网.svg', desc: '大造 中国制造网店铺，面向海外买家展示' },
+    { name: 'dazaocn.com', url: 'https://www.dazaocn.com/', icon: 'icons/公司DAZAO.svg', desc: '大造公司官网，产品与 CNC 加工能力介绍' },
+    { name: 'machining.com', url: 'https://www.dazaocncmachining.com/', icon: 'icons/公司DAZAO.svg', desc: '大造 CNC 加工独立站，展示机加工服务与案例' },
+    { name: 'BKD', url: 'https://moldmanufacturing.en.alibaba.com/', icon: 'icons/阿里国际站.svg', desc: 'BKD（双亿）国际站店铺，主营模具制造加工' },
+    { name: 'BKD', url: 'https://shuangyicn.1688.com/', icon: 'icons/阿里1688.svg', desc: 'BKD（双亿）1688 店铺，模具与加工国内渠道' },
+    { name: 'BKD', url: 'https://bokaidi.cn/', icon: 'icons/公司BKD.svg', desc: 'BKD 公司官网，企业介绍与业务展示' },
 ]);
 
 createPopupMenu('yunweiCard', 'yunweiMenu', '运维', [
-{ name: '全球Ping', url: 'https://ping.chinaz.com/', icon: 'icons/站长之家.svg' },
-{ name: 'Google Trends', url: 'https://trends.google.com/home', icon: 'icons/GoogleTrends.svg' },
-{ name: 'SEMRUSH', url: 'https://dash.3ue.co/#/register', icon: 'icons/semrush.svg' },
-{ name: 'AnswerThePublic', url: 'https://answerthepublic.com/en/reports/aef082cf-3116-445d-9985-10e6d9eb5f29', icon: 'icons/AnswerThePublic.svg' },
-{ name: 'SimilarSites', url: 'https://www.similarsites.com/', icon: 'icons/SimilarSites.svg' },
-{ name: '百度指数', url: 'https://index.baidu.com/v2/index.html#/', icon: 'icons/百度指数.svg' },
-{ name: '微信指数', url: 'https://wximg.qq.com/mmsearch/h5/dist/wxindex/logo_url.png#/', icon: 'icons/微信指数.svg' },
-{ name: '抖音指数', url: 'https://creator.douyin.com/creator-micro/creator-count/arithmetic-index', icon: 'icons/抖音指数.svg' },
-{ name: 'GitHub', url: 'https://github.com/', icon: 'icons/GitHub.svg' },
-{ name: 'CodePen', url: 'https://codepen.io/', icon: 'icons/CodePen.svg' },
-{ name: 'Cloudflare', url: 'https://dash.cloudflare.com/', icon: 'icons/Cloudflare.svg' },
-{ name: '阿里云', url: 'https://www.aliyun.com/', icon: 'icons/阿里云.svg' },
-{ name: 'Hostinger', url: 'https://www.hostinger.com/', icon: 'icons/Hostinger.svg' },
-{ name: 'BandwagonHost', url: 'https://bandwagonhost.com/', icon: 'icons/BandwagonHost.png' },
-{ name: '手机伪装度', url: 'https://whoer.net/zh', icon: 'icons/whoer.png' },
-{ name: '2FA验证码', url: 'http://nav.chenzubao.com/Authenticator', icon: 'icons/GoogleAuthenticator.svg' },
+{ name: '全球Ping', url: 'https://ping.chinaz.com/', icon: 'icons/站长之家.svg', desc: '站长工具全球 Ping，测试网站各地响应速度' },
+{ name: 'Google Trends', url: 'https://trends.google.com/home', icon: 'icons/GoogleTrends.svg', desc: 'Google 趋势，对比关键词在全球的热度走势' },
+{ name: 'SEMRUSH', url: 'https://dash.3ue.co/#/register', icon: 'icons/semrush.svg', desc: 'SEMrush SEO 分析平台，关键词研究与竞品流量监测' },
+{ name: 'AnswerThePublic', url: 'https://answerthepublic.com/en/reports/aef082cf-3116-445d-9985-10e6d9eb5f29', icon: 'icons/AnswerThePublic.svg', desc: '可视化搜索提问工具，挖掘用户的真实搜索意图' },
+{ name: 'SimilarSites', url: 'https://www.similarsites.com/', icon: 'icons/SimilarSites.svg', desc: '网站相似度查询，快速找到同类竞品站点' },
+{ name: '百度指数', url: 'https://index.baidu.com/v2/index.html#/', icon: 'icons/百度指数.svg', desc: '百度搜索热度指数，观察关键词的趋势变化' },
+{ name: '微信指数', url: 'https://wximg.qq.com/mmsearch/h5/dist/wxindex/logo_url.png#/', icon: 'icons/微信指数.svg', desc: '微信生态热度指数，查看品牌词在微信的讨论热度' },
+{ name: '抖音指数', url: 'https://creator.douyin.com/creator-micro/creator-count/arithmetic-index', icon: 'icons/抖音指数.svg', desc: '抖音算数指数，查看话题与达人的热度数据' },
+{ name: 'GitHub', url: 'https://github.com/', icon: 'icons/GitHub.svg', desc: '全球最大代码托管平台，开源项目与协作开发' },
+{ name: 'CodePen', url: 'https://codepen.io/', icon: 'icons/CodePen.svg', desc: '前端在线代码编辑器，HTML/CSS/JS 实时预览分享' },
+{ name: 'Cloudflare', url: 'https://dash.cloudflare.com/', icon: 'icons/Cloudflare.svg', desc: 'CDN 与网站安全服务，托管 DNS、加速与防护' },
+{ name: '阿里云', url: 'https://www.aliyun.com/', icon: 'icons/阿里云.svg', desc: '阿里云官网，云服务器、域名、备案等一站式服务' },
+{ name: 'Hostinger', url: 'https://www.hostinger.com/', icon: 'icons/Hostinger.svg', desc: '高性价比海外虚拟主机与云服务商' },
+{ name: 'BandwagonHost', url: 'https://bandwagonhost.com/', icon: 'icons/BandwagonHost.png', desc: '搬瓦工 VPS 服务商，海外服务器常用选择' },
+{ name: '手机伪装度', url: 'https://whoer.net/zh', icon: 'icons/whoer.png', desc: 'Whoer 检测，查看 IP、浏览器指纹与匿名度' },
+{ name: '2FA验证码', url: 'http://nav.chenzubao.com/Authenticator', icon: 'icons/GoogleAuthenticator.svg', desc: '自建 2FA 验证码管理页，集中查看动态验证码' },
 ]);
 
 createPopupMenu('baiduCard', 'baiduMenu', '百度', [
-    { name: '搜索', url: 'https://www.baidu.com', icon: 'icons/百度.svg' },
-    { name: '文心', url: 'https://yiyan.baidu.com/', icon: 'icons/百度文心.svg' },
-    { name: '地图', url: 'https://map.baidu.com', icon: 'icons/百度地图.svg' },
-    { name: '网盘', url: 'https://pan.baidu.com', icon: 'icons/百度网盘.svg' },
-    { name: '爱奇艺', url: 'https://www.iqiyi.com/', icon: 'icons/百度爱奇艺.png' },
-    { name: '爱企查', url: 'https://aiqicha.baidu.com/', icon: 'icons/百度爱企查.png' },
-    { name: '百家号', url: 'https://baijiahao.baidu.com/', icon: 'icons/百度百家号.svg' },
-    { name: '百科', url: 'https://baike.baidu.com', icon: 'icons/百度百科.png' },
+    { name: '搜索', url: 'https://www.baidu.com', icon: 'icons/百度.svg', desc: '百度中文搜索，覆盖网页、图片、资讯等内容' },
+    { name: '文心', url: 'https://yiyan.baidu.com/', icon: 'icons/百度文心.svg', desc: '文心一言，百度大模型对话与创作助手' },
+    { name: '地图', url: 'https://map.baidu.com', icon: 'icons/百度地图.svg', desc: '百度地图，出行导航与地点查询' },
+    { name: '网盘', url: 'https://pan.baidu.com', icon: 'icons/百度网盘.svg', desc: '百度网盘，大文件云存储与分享' },
+    { name: '爱奇艺', url: 'https://www.iqiyi.com/', icon: 'icons/百度爱奇艺.png', desc: '爱奇艺视频平台，影视综艺资源丰富' },
+    { name: '爱企查', url: 'https://aiqicha.baidu.com/', icon: 'icons/百度爱企查.png', desc: '百度企业信息查询，查工商资质与经营风险' },
+    { name: '百家号', url: 'https://baijiahao.baidu.com/', icon: 'icons/百度百家号.svg', desc: '百度内容创作平台，发布图文视频获取搜索流量' },
+    { name: '百科', url: 'https://baike.baidu.com', icon: 'icons/百度百科.png', desc: '百度百科，中文知识词条百科全书' },
 ]);
         
 createPopupMenu('wenbenCard', 'wenbenMenu', '文本处理', [
-        { name: '字符统计', url: 'https://nav.chenzubao.com/Hzifutongji.html', icon: 'icons/Hzifutongji.svg' },
-        { name: '大小写转换', url: 'https://nav.chenzubao.com/Hdaxiaoxie.html', icon: 'icons/Hdaxiaoxie.svg' },
-        { name: '花字母转换', url: 'https://nav.chenzubao.com/Hhuazimu.html', icon: 'icons/Hhuazimu.svg' },
-        { name: '特殊符号大全', url: 'https://nav.chenzubao.com/Hfuhaodaquan.html', icon: 'icons/Hfuhaodaquan.svg' },
-        { name: '繁体字转换', url: 'https://nav.chenzubao.com/Hfantizi.html', icon: 'icons/Hfantizi.svg' },
-        { name: '查询ip信息', url: 'https://nav.chenzubao.com/Hip.html', icon: 'icons/Hip.svg' },
-        { name: '随机抽奖', url: 'https://nav.chenzubao.com/Hchoujiang.html', icon: 'icons/Hchoujiang.svg' },
+        { name: '字符统计', url: 'https://nav.chenzubao.com/Hzifutongji.html', icon: 'icons/Hzifutongji.svg', desc: '字符/字数统计小工具，快速统计文本长度' },
+        { name: '大小写转换', url: 'https://nav.chenzubao.com/Hdaxiaoxie.html', icon: 'icons/Hdaxiaoxie.svg', desc: '英文大小写一键转换小工具' },
+        { name: '花字母转换', url: 'https://nav.chenzubao.com/Hhuazimu.html', icon: 'icons/Hhuazimu.svg', desc: '花体/艺术字母在线生成器' },
+        { name: '特殊符号大全', url: 'https://nav.chenzubao.com/Hfuhaodaquan.html', icon: 'icons/Hfuhaodaquan.svg', desc: '特殊符号与表情集合，点击复制即用' },
+        { name: '繁体字转换', url: 'https://nav.chenzubao.com/Hfantizi.html', icon: 'icons/Hfantizi.svg', desc: '简体与繁体中文互转工具' },
+        { name: '查询ip信息', url: 'https://nav.chenzubao.com/Hip.html', icon: 'icons/Hip.svg', desc: 'IP 归属地与网络信息查询小工具' },
+        { name: '随机抽奖', url: 'https://nav.chenzubao.com/Hchoujiang.html', icon: 'icons/Hchoujiang.svg', desc: '随机抽奖小工具，自定义名单抽取结果' },
 ]);
 
         // ============================================================
